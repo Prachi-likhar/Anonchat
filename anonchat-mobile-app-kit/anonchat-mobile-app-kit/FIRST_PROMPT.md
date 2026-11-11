@@ -1,0 +1,3 @@
+Read README.md, AGENTS.md and every file in docs/ and research/. Follow .agent/workflows/review-prompt.md.
+
+Task: complete **Phase 0 and Phase 1** of docs/BUILD_PLAN.md: create the Expo (TypeScript) app in this folder, configure NativeWind, folder structure, theme tokens (dark/light), API client with secure token storage and refresh, auth store, navigation with auth/app/admin stacks, base UI components. Write the PLANNED entry in research/PROGRESS_LOG.md first. Verify current Expo SDK / NativeWind setup steps on the web before installing. Finish with the error-review skill, fix everything, and report Phase 2 plan.
