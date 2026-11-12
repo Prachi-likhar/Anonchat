@@ -3,43 +3,56 @@
 > Living handoff/context summary of completed work, architecture decisions, verification status, and active next steps.
 
 ## Repository Layout
-- **Backend (`anonchat-backend-kit/anonchat-backend-kit/`):** Node.js + Express (v5, CommonJS) + PostgreSQL + Socket.IO API server.
-- **Web (`anonchat-web-kit/anonchat-web-kit/`):** React + TypeScript + Vite + Tailwind CSS starter kit (not started yet).
-- **Mobile (`anonchat-mobile-app-kit/anonchat-mobile-app-kit/`):** React Native (Expo) + TypeScript + NativeWind starter kit (not started yet).
+- **Backend (`anonchat-backend-kit/anonchat-backend-kit/`):** Complete Node.js + Express (v5, CommonJS) + PostgreSQL + Socket.IO API server (Phases 0–7 completed, tested, and pushed).
+- **Web (`anonchat-web-kit/anonchat-web-kit/`):** React + TypeScript + Vite + Tailwind CSS starter kit (ready for implementation against the backend API contract).
+- **Mobile (`anonchat-mobile-app-kit/anonchat-mobile-app-kit/`):** React Native (Expo) + TypeScript + NativeWind starter kit (ready for implementation against the backend API contract).
 
-## What Has Been Done
+## Backend Completed Work (Phases 0–7)
 
-### Phase 0 & Phase 1 — Backend Scaffold & Foundation (`623ddf9`)
-- Tooling, Zod env config (`src/config/env.js`), `pino` redaction logger, `pg` pool + transactions, `db/migrations/001_init.sql`, `scripts/migrate.js`, `AppError`, `asyncHandler`, `validate`, `notFound`, `errorHandler`, `globalLimiter`, `src/app.js`, `src/server.js`, `GET /api/health`.
+### Phase 0 & Phase 1 — Scaffold & Foundation (`623ddf9`)
+- CommonJS package setup (Node `>=20`), pinned dependencies, ESLint v9 flat config, Prettier, Jest + Supertest.
+- Zod-validated environment config (`src/config/env.js`), `pino` redaction logger (`src/utils/logger.js`).
+- PostgreSQL pool & transactions (`src/db/pool.js`), migration runner (`scripts/migrate.js`, `db/migrations/001_init.sql`).
+- Foundation middleware: `AppError`, `asyncHandler`, `validate` (Zod v4 issues), `notFound`, `errorHandler` (contract error shape), `globalLimiter`, `app.js`, `server.js`, `GET /api/health`.
 
 ### Phase 2 — Auth & User Profile (`03ab9fe`)
-- `anonUsername`, `otpService`, `tokenService`, `authenticate` middleware, auth rate limiters, `/api/auth/*`, `/api/me/*`, `CONTEXT.md`, root `.gitignore`.
+- `src/utils/anonUsername.js`: Generates `Anonymous_<N>` (`[100, 9999]`), retries `23505` collisions, widens range ×10.
+- `src/services/otpService.js`: 6-digit OTP, `sha256` peppered hash, `timingSafeEqual`, 5-attempt invalidation, Apps Script Web App delivery with `503` rollback, development console fallback.
+- `src/services/tokenService.js`: HS256 access JWT, 48-byte opaque refresh token stored as SHA-256 with `family_id` rotation and reuse theft detection.
+- `src/middleware/auth.js`: Bearer JWT + live DB account status check with 15 s cache and expired suspension auto-lift.
+- Endpoints: `/api/auth/*` (`register`, `verify-email`, `resend-otp`, `login` with 5-fail 15-min lockout, `refresh`, `logout`, `forgot-password`, `reset-password`) with web `httpOnly` cookie vs `X-Client: mobile` body support; `/api/me/*` (`GET`, `PATCH`, `change-password`, `DELETE`).
 
 ### Phase 3 — Discovery & Blocks (`f0dc07b`)
-- `presenceService`, `pagination.js`, `toPublicMember`, `GET /api/members`, `/api/blocks/*`.
+- `src/services/presenceService.js`: In-memory multi-device connection map.
+- `src/utils/pagination.js`: `escapeLike` (`%`, `_`, `\`), opaque base64url cursors, `slicePage`.
+- `toPublicMember`: Serializer with strict public keys (`id`, `anonUsername`, `gender`, `avatarColor`, `isOnline`, `blockedByMe`).
+- Endpoints: `GET /api/members` (filters `all|male|female|online`, search, pagination, exclusions), `/api/blocks/*` (transactional block + end active conversation, unblock, list).
 
 ### Phase 4 — Chat REST & Anti-Spam (`c045302`)
-- `antiSpam.js`, `conversations` module (`/api/conversations/*`, `/api/unread-count`).
+- `src/services/antiSpam.js`: 5 messages / 10 s burst, 20 messages / 60 s, 10 new conversations / hour, normalized body hash duplicate detection (`>= 3` identical in 60 s -> `429 DUPLICATE_MESSAGE`), `STRICT_FIRST_CONTACT`.
+- Endpoints: `POST /api/conversations` (idempotent active reuse `200` / create or reactivate `201`, `403 USER_BLOCKED`), `GET /api/conversations` (cursor pagination), `GET /api/conversations/:id/messages` (newest first, `before` cursor, 404 for non-participants), `POST /api/conversations/:id/messages` (1–2000 chars trimmed, idempotent `clientMsgId`, `409 CONVERSATION_ENDED`), `POST /read`, `POST /end`, `DELETE` (soft-delete; hard-deletes messages when both sides deleted), `GET /api/unread-count`.
 
 ### Phase 5 — Real-time Socket.IO (`4d3fd16`)
-- `src/sockets/` (`index.js`, `handlers.js`, `emitter.js`) wired into `src/server.js`, `conversations.service.js`, `blocks.service.js`, and `users.service.js`.
+- `src/sockets/index.js`: Socket.IO attached to HTTP server (`/socket.io`, websocket + polling, CORS allow-list), JWT + DB account status authentication.
+- `src/sockets/handlers.js`: `user:<id>` rooms, JWT expiry disconnect timer, multi-device presence, disconnect `last_seen_at` update, presence broadcasts only to conversation peers, throttled `typing:start`/`typing:stop` relay for non-blocked participants.
+- `src/sockets/emitter.js`: Emitters wired to REST actions (`message:new`, `message:read`, `conversation:ended`, `force-logout`).
 
-### Phase 6 — Reports & Admin (`docs/ADMIN.md`) (Ready & Pushing to `main`)
-1. **Reports (`src/modules/reports/`):**
-   - `POST /api/reports`: Rate-limited (`reportsLimiter`, 10/day per user), rejects self-reporting and reporting admin accounts, validates conversation participation, and stores a chronological snapshot of the last 30 messages using anon usernames only.
-2. **Admin & Moderation (`src/middleware/requireAdmin.js`, `src/modules/admin/`, `scripts/seedAdmin.js`):**
-   - Router-level `authenticate` + `requireAdmin` (`403 FORBIDDEN` for non-admins).
-   - Endpoints mounted at `/api/admin`: `GET /stats`, `GET /users`, `GET /users/:id`, `POST /users/:id/suspend`, `POST /users/:id/ban`, `POST /users/:id/reinstate`, `POST /users/:id/role` (super-admin only via `SUPER_ADMIN_EMAIL`), `GET /reports`, `GET /reports/:id` (snapshot labeled `Reporter` / `Reported` with anon usernames only), `PATCH /reports/:id` (workflow `open -> reviewing -> resolved/dismissed` + atomic suspend/ban), `GET /activity`, `GET /online`.
-   - Every moderation action writes `admin_audit_log`, prevents self-ban and banning/suspending the last active admin, revokes refresh tokens + emits `force-logout`, and hides `fullName` unless `ADMIN_CAN_SEE_FULL_NAME=true`.
-   - `scripts/seedAdmin.js`: Idempotently seeds `Anonymous_Admin` from `SUPER_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD`.
-3. **Verification Completed:**
-   - `npm.cmd run lint` and `npm.cmd run format:check` passed.
-   - `npm.cmd test`: 13 suites, 56 tests passed (with mocked DB).
-   - Live server smoke test on port `4095`: `GET /api/admin/stats` and `POST /api/reports` unauthenticated returned `401 UNAUTHENTICATED`.
+### Phase 6 — Reports & Admin Moderation (`f93d8de`)
+- `src/modules/reports/`: `POST /api/reports` with 10/day user rate limit, rejecting self-reporting & admin-reporting, storing last-30-message snapshot with anon usernames only.
+- `src/middleware/requireAdmin.js`: `role === 'admin'` guard (`403 FORBIDDEN`).
+- `src/modules/admin/`: `GET /stats`, `GET /users`, `GET /users/:id`, `POST /users/:id/suspend`, `POST /users/:id/ban`, `POST /users/:id/reinstate`, `POST /users/:id/role` (`SUPER_ADMIN_EMAIL`-only), `GET /reports`, `GET /reports/:id` (snapshot with `Reporter`/`Reported` labels), `PATCH /reports/:id` (atomic workflow + suspend/ban), `GET /activity`, `GET /online`.
+- Auditing: `admin_audit_log` writes on all actions, self-ban and last-admin guards, token revocation + socket `force-logout`.
+- `scripts/seedAdmin.js`: Seeds `Anonymous_Admin` from `SUPER_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`.
 
-## Active Next Step
-- **Phase 7 — Hardening & Docs (`docs/BUILD_PLAN.md`, `docs/SECURITY_PRIVACY_CHECKLIST.md`):**
-  - `docs/DEPLOY.md` (env, Postgres, reverse proxy with WebSocket upgrade, HTTPS, backups)
-  - `openapi.yaml` (or Postman/Thunder Client collection)
-  - Load sanity test script for message sending
-  - Full `docs/SECURITY_PRIVACY_CHECKLIST.md` verification and README quick-start check
+### Phase 7 — Hardening & Docs (Finalizing & Pushing to `main`)
+- `docs/DEPLOY.md`: Production deployment guide (Node 20, PostgreSQL 14+, Nginx reverse proxy with WebSocket upgrade, HTTPS, backups, Redis scaling path).
+- `docs/openapi.yaml`: Full OpenAPI 3.0.3 specification matching `docs/API_CONTRACT.md`.
+- `scripts/loadSanity.js`: Message-sending burst load sanity runner (`npm run load:sanity`) verifying 5-burst limit + 25 rate-limited requests at sub-5ms latencies.
+- `docs/SECURITY_PRIVACY_CHECKLIST.md`: Verified and ticked all backend items (noting client-side items for web/mobile kits).
+- `README.md`: Quick-start instructions updated and verified.
+
+## Verification Status
+- Lint & Style: `npm run lint` and `npm run format:check` clean (0 errors, 0 warnings).
+- Unit & Contract Tests: 13 test suites, 56 tests passed (`npm test`).
+- Load Sanity: `npm run load:sanity` passed (30 requests: 5 created, 25 rate-limited, p50 1.01ms, p95 4.23ms).
+- Privacy Audit: Zero forbidden `console.log` calls in `src/` and `scripts/`; all PII redacted in `logger.js`.

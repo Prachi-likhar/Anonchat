@@ -1,25 +1,43 @@
 # BACKEND KIT — Anonymous Community Chat (Node.js + Express JS + PostgreSQL)
 
-**How to use with Antigravity**
-1. Unzip, open this folder as the workspace in Antigravity (the `.agent/` folder holds rules, skills and workflows).
-2. Paste the first prompt from `FIRST_PROMPT.md`.
-3. For every later prompt the agent must follow `.agent/workflows/review-prompt.md` (read `research/` → plan → build → error-review).
-4. Check `research/PROGRESS_LOG.md` any time to see what was done and what's next.
+## Quick Start
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+2. **Configure environment:**
+   Copy `.env.example` to `.env` in this folder and set `DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `OTP_PEPPER`, `SUPER_ADMIN_EMAIL`, and `SEED_ADMIN_PASSWORD`.
+   - In `NODE_ENV=development`, leaving `APPS_SCRIPT_URL` empty prints OTPs to the server console (`DEV ONLY`).
+3. **Run database migrations & seed super-admin:**
+   ```bash
+   npm run migrate
+   npm run seed:admin
+   ```
+4. **Start the server:**
+   ```bash
+   npm run dev        # nodemon (development)
+   npm start          # node src/server.js (production)
+   ```
+5. **Verify quality & tests:**
+   ```bash
+   npm run lint
+   npm run format:check
+   npm test
+   npm run load:sanity
+   ```
 
-**Contents**
+**Documentation & Kit Contents**
 | Path | Purpose |
 |---|---|
-| `AGENTS.md` | Project brief for the agent (stack, folder layout, commands) |
-| `FIRST_PROMPT.md` | Copy-paste starter prompt |
-| `.agent/` | Rules, skills (`prompt-review`, `error-review`, `web-research`, `make-skill`), workflow |
-| `docs/API_CONTRACT.md` | Shared contract (same file in web & mobile kits) |
+| `AGENTS.md` | Project brief (stack, folder layout, commands) |
+| `docs/API_CONTRACT.md` + `docs/openapi.yaml` | Shared REST + Socket.IO API contract |
 | `docs/ARCHITECTURE.md` | Folder structure, layers, request flow |
-| `docs/DATABASE_SCHEMA.md` + `db/schema.sql` | Tables, indexes, constraints |
+| `docs/DATABASE_SCHEMA.md` + `db/migrations/001_init.sql` | Tables, indexes, constraints |
 | `docs/AUTH_SECURITY.md` | JWT, refresh rotation, bcrypt, CORS, rate limits, blocking rules |
 | `docs/OTP_GOOGLE_SHEETS.md` + `apps-script/Code.gs` | Email OTP via Google Apps Script + Sheet log |
 | `docs/REALTIME.md` | Socket.IO design |
 | `docs/ADMIN.md` | Admin & moderation rules |
-| `docs/BUILD_PLAN.md` | Phased build order with acceptance criteria |
+| `docs/DEPLOY.md` | Production deployment, Nginx WebSocket proxy, HTTPS, backups |
 | `docs/TESTING.md` | Test plan |
-| `docs/SECURITY_PRIVACY_CHECKLIST.md` | Pre-"done" checklist |
-| `research/` | Living memory: PROGRESS_LOG, NEXT_STEPS, DECISIONS, ERRORS_LOG |
+| `docs/SECURITY_PRIVACY_CHECKLIST.md` | Security & privacy audit checklist |
+| `research/` | Living memory: `PROGRESS_LOG`, `NEXT_STEPS`, `DECISIONS`, `ERRORS_LOG` |

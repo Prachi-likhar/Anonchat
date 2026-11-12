@@ -17,6 +17,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "load:sanity": "node scripts/loadSanity.js",
     "test": "jest --runInBand",
     "test:watch": "jest --watch"
   },

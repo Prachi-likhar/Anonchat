@@ -1,0 +1,413 @@
+openapi: 3.0.3
+info:
+  title: Anonymous Community Chat API
+  version: 1.0.0
+  description: >
+    REST API contract for Anonymous Community Chat. Real-time events are delivered
+    over Socket.IO at `/socket.io` using `{ auth: { token: accessToken } }`.
+servers:
+  - url: http://localhost:4000/api
+    description: Local development server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+    PublicMember:
+      type: object
+      required: [id, anonUsername, gender, avatarColor, isOnline, blockedByMe]
+      properties:
+        id: { type: string, format: uuid }
+        anonUsername: { type: string, example: Anonymous_4821 }
+        gender: { type: string, enum: [male, female] }
+        avatarColor: { type: string, example: '#7C3AED' }
+        isOnline: { type: boolean }
+        blockedByMe: { type: boolean }
+    Me:
+      type: object
+      required: [id, anonUsername, fullName, email, gender, avatarColor, role, theme, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        anonUsername: { type: string }
+        fullName: { type: string }
+        email: { type: string, format: email }
+        gender: { type: string, enum: [male, female] }
+        avatarColor: { type: string }
+        role: { type: string, enum: [user, admin] }
+        theme: { type: string, enum: [system, light, dark] }
+        createdAt: { type: string, format: date-time }
+    Message:
+      type: object
+      required: [id, conversationId, mine, body, createdAt, readAt]
+      properties:
+        id: { type: string, format: uuid }
+        conversationId: { type: string, format: uuid }
+        mine: { type: boolean }
+        body: { type: string }
+        createdAt: { type: string, format: date-time }
+        readAt: { type: string, format: date-time, nullable: true }
+        clientMsgId: { type: string }
+    Conversation:
+      type: object
+      required: [id, other, lastMessage, unreadCount, status, endedByMe, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        other: { $ref: '#/components/schemas/PublicMember' }
+        lastMessage:
+          type: object
+          nullable: true
+          properties:
+            id: { type: string, format: uuid }
+            body: { type: string }
+            createdAt: { type: string, format: date-time }
+            mine: { type: boolean }
+        unreadCount: { type: integer }
+        status: { type: string, enum: [active, ended] }
+        endedByMe: { type: boolean }
+        updatedAt: { type: string, format: date-time }
+    AdminUser:
+      type: object
+      required: [id, anonUsername, email, gender, status, role, isOnline, reportCount, createdAt, lastSeenAt, suspendedUntil]
+      properties:
+        id: { type: string, format: uuid }
+        anonUsername: { type: string }
+        email: { type: string, format: email }
+        fullName: { type: string, description: Included only when ADMIN_CAN_SEE_FULL_NAME=true }
+        gender: { type: string, enum: [male, female] }
+        status: { type: string, enum: [active, suspended, banned] }
+        role: { type: string, enum: [user, admin] }
+        isOnline: { type: boolean }
+        reportCount: { type: integer }
+        createdAt: { type: string, format: date-time }
+        lastSeenAt: { type: string, format: date-time, nullable: true }
+        suspendedUntil: { type: string, format: date-time, nullable: true }
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Server healthy
+  /auth/register:
+    post:
+      summary: Register a new unverified user and send OTP
+      responses:
+        '201': { description: OTP sent }
+        '400': { description: Validation error }
+        '429': { description: Rate limited }
+  /auth/verify-email:
+    post:
+      summary: Verify email OTP and log in
+      responses:
+        '200': { description: Verified and authenticated }
+        '400': { description: Invalid or expired OTP }
+  /auth/resend-otp:
+    post:
+      summary: Resend email verification OTP
+      responses:
+        '200': { description: Generic confirmation }
+        '429': { description: Cooldown or hourly limit }
+  /auth/login:
+    post:
+      summary: Authenticate with email and password
+      responses:
+        '200': { description: Authenticated }
+        '401': { description: Invalid credentials }
+        '403': { description: Unverified, suspended, or banned }
+        '429': { description: Locked or rate limited }
+  /auth/refresh:
+    post:
+      summary: Rotate refresh token and issue new access token
+      responses:
+        '200': { description: Rotated tokens }
+        '401': { description: Invalid, expired, or reused refresh token }
+  /auth/logout:
+    post:
+      summary: Revoke current refresh token
+      responses:
+        '204': { description: Logged out }
+  /auth/forgot-password:
+    post:
+      summary: Request password reset OTP
+      responses:
+        '200': { description: Generic confirmation }
+  /auth/reset-password:
+    post:
+      summary: Reset password with OTP and revoke sessions
+      responses:
+        '200': { description: Password reset }
+  /me:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Get current user profile
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+    patch:
+      security: [{ bearerAuth: [] }]
+      summary: Update current user profile
+      responses:
+        '200': { description: Updated profile }
+    delete:
+      security: [{ bearerAuth: [] }]
+      summary: Delete current user account
+      responses:
+        '204': { description: Account deleted }
+  /me/change-password:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Change password and revoke other sessions
+      responses:
+        '204': { description: Password updated }
+  /members:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Discover verified active non-admin members
+      parameters:
+        - in: query
+          name: filter
+          schema: { type: string, enum: [all, male, female, online] }
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+        - in: query
+          name: cursor
+          schema: { type: string }
+      responses:
+        '200': { description: Paginated public members }
+  /blocks:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List members blocked by current user
+      responses:
+        '200': { description: Blocked member list }
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Block a member and end active conversations
+      responses:
+        '204': { description: Member blocked }
+  /blocks/{memberId}:
+    delete:
+      security: [{ bearerAuth: [] }]
+      summary: Unblock a member
+      parameters:
+        - in: path
+          name: memberId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Member unblocked }
+  /conversations:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Start or return existing active conversation
+      responses:
+        '200': { description: Existing active conversation }
+        '201': { description: Created conversation }
+        '403': { description: Blocked }
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List my conversations
+      responses:
+        '200': { description: Paginated conversations }
+  /conversations/{id}/messages:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List conversation messages newest first
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Paginated messages }
+        '404': { description: Not found or non-participant }
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Send a message
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '201': { description: Message sent }
+        '403': { description: Blocked }
+        '409': { description: Conversation ended }
+        '429': { description: Rate limited or duplicate message }
+  /conversations/{id}/read:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Mark incoming messages read
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Marked read }
+  /conversations/{id}/end:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: End conversation for both participants
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Ended }
+  /conversations/{id}:
+    delete:
+      security: [{ bearerAuth: [] }]
+      summary: Soft-delete conversation for caller (hard-deletes messages when both sides deleted)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Deleted }
+  /unread-count:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Get total unread messages across active inbox
+      responses:
+        '200': { description: Unread total }
+  /reports:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Submit abuse report with snapshot of last 30 messages
+      responses:
+        '201': { description: Report created }
+  /admin/stats:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Get community statistics
+      responses:
+        '200': { description: Stats summary }
+        '403': { description: Admin required }
+  /admin/users:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List and search users
+      responses:
+        '200': { description: Paginated admin users }
+  /admin/users/{id}:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Get user detail, recent reports, and audit entries
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: User detail }
+  /admin/users/{id}/suspend:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Suspend user, revoke tokens, force logout
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Suspended }
+  /admin/users/{id}/ban:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Ban user, revoke tokens, force logout
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Banned }
+  /admin/users/{id}/reinstate:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Reinstate suspended or banned user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Reinstated }
+  /admin/users/{id}/role:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Change user role (super-admin only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Role updated }
+  /admin/reports:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List moderation reports
+      responses:
+        '200': { description: Paginated reports }
+  /admin/reports/{id}:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: View report and anonymized message snapshot
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Report detail }
+    patch:
+      security: [{ bearerAuth: [] }]
+      summary: Transition report status and optionally suspend or ban reported user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Updated report }
+  /admin/activity:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List admin audit log entries
+      responses:
+        '200': { description: Paginated audit log }
+  /admin/online:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List currently online users
+      responses:
+        '200': { description: Online admin user list }
