@@ -1,6 +1,12 @@
 const { env } = require('../../config/env');
 const { pool, withTransaction } = require('../../db/pool');
 const antiSpam = require('../../services/antiSpam');
+const {
+  getIo,
+  emitMessageNew,
+  emitMessageRead,
+  emitConversationEnded,
+} = require('../../sockets/emitter');
 const AppError = require('../../utils/AppError');
 const { decodeCursor, slicePage } = require('../../utils/pagination');
 const { canonicalPair, toConversation, toMessage } = require('./conversations.serializer');
@@ -337,6 +343,21 @@ async function sendMessage(meId, conversationId, { body, clientMsgId }) {
 
   if (!wasIdempotentRace) {
     antiSpam.recordMessageSent({ userId: meId, conversationId, body });
+
+    if (getIo()) {
+      const [senderConversation, recipientConversation] = await Promise.all([
+        fetchConversationById(pool, meId, conversationId),
+        fetchConversationById(pool, convo.otherId, conversationId),
+      ]);
+      emitMessageNew({
+        senderId: meId,
+        recipientId: convo.otherId,
+        senderMessage: toMessage(savedRow, meId),
+        recipientMessage: toMessage(savedRow, convo.otherId),
+        senderConversation,
+        recipientConversation,
+      });
+    }
   }
 
   return toMessage(savedRow, meId);
@@ -360,6 +381,7 @@ async function markConversationRead(meId, conversationId) {
     );
   });
 
+  emitMessageRead({ conversationId, otherId: convo.otherId, readAt });
   return { readAt, otherId: convo.otherId };
 }
 
@@ -371,6 +393,11 @@ async function endConversation(meId, conversationId) {
      WHERE id = $1 AND status = 'active'`,
     [conversationId, meId],
   );
+  emitConversationEnded({
+    conversationId,
+    userA: convo.user_a,
+    userB: convo.user_b,
+  });
   return { otherId: convo.otherId };
 }
 
@@ -423,4 +450,3 @@ module.exports = {
   deleteConversation,
   getUnreadCount,
 };
-

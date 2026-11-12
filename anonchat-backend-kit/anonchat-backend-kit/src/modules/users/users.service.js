@@ -3,6 +3,7 @@ const { env } = require('../../config/env');
 const { pool, withTransaction } = require('../../db/pool');
 const tokenService = require('../../services/tokenService');
 const { invalidateUserAuthCache } = require('../../middleware/auth');
+const { emitForceLogout } = require('../../sockets/emitter');
 const AppError = require('../../utils/AppError');
 const { toMe } = require('./users.serializer');
 
@@ -79,6 +80,7 @@ async function changePassword(userId, { currentPassword, newPassword, currentRef
   });
 
   invalidateUserAuthCache(userId);
+  emitForceLogout({ userId, reason: 'password-changed' });
 }
 
 async function deleteMe(userId, { password }) {

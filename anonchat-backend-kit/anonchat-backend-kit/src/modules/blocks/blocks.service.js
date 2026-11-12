@@ -1,5 +1,6 @@
 const { pool, withTransaction } = require('../../db/pool');
 const { toPublicMember } = require('../users/users.serializer');
+const { emitConversationEnded } = require('../../sockets/emitter');
 const AppError = require('../../utils/AppError');
 
 /**
@@ -11,6 +12,7 @@ async function blockMember(meId, targetMemberId) {
     throw AppError.badRequest('Cannot block yourself');
   }
 
+  const [userA, userB] = [meId, targetMemberId].sort();
   let endedConversationIds = [];
 
   await withTransaction(async (client) => {
@@ -28,7 +30,6 @@ async function blockMember(meId, targetMemberId) {
       [meId, targetMemberId],
     );
 
-    const [userA, userB] = [meId, targetMemberId].sort();
     const endedRes = await client.query(
       `UPDATE conversations
        SET status = 'ended', ended_by = $3
@@ -38,6 +39,10 @@ async function blockMember(meId, targetMemberId) {
     );
     endedConversationIds = endedRes.rows.map((r) => r.id);
   });
+
+  for (const conversationId of endedConversationIds) {
+    emitConversationEnded({ conversationId, userA, userB });
+  }
 
   return { endedConversationIds };
 }

@@ -9,33 +9,30 @@
 
 ## What Has Been Done
 
-### Phase 0 & Phase 1 — Backend Scaffold & Foundation (Committed & Pushed: `623ddf9` on `main`)
+### Phase 0 & Phase 1 — Backend Scaffold & Foundation (`623ddf9`)
 - Tooling, Zod env config (`src/config/env.js`), `pino` redaction logger, `pg` pool + transactions, `db/migrations/001_init.sql`, `scripts/migrate.js`, `AppError`, `asyncHandler`, `validate`, `notFound`, `errorHandler`, `globalLimiter`, `src/app.js`, `src/server.js`, `GET /api/health`.
 
-### Phase 2 — Auth & User Profile (Committed & Pushed: `03ab9fe` on `main`)
-- `anonUsername`, `otpService` (Apps Script + dev fallback), `tokenService` (access JWT + refresh rotation/reuse detection), `authenticate` middleware (DB status check + 15 s cache), auth rate limiters, `/api/auth/*`, `/api/me/*`, `CONTEXT.md`, root `.gitignore`.
+### Phase 2 — Auth & User Profile (`03ab9fe`)
+- `anonUsername`, `otpService`, `tokenService`, `authenticate` middleware, auth rate limiters, `/api/auth/*`, `/api/me/*`, `CONTEXT.md`, root `.gitignore`.
 
-### Phase 3 — Discovery & Blocks (Committed & Pushed: `f0dc07b` on `main`)
-- `presenceService`, `pagination.js` (`escapeLike`, opaque cursors), `toPublicMember` exact-key serializer, `GET /api/members`, and `/api/blocks` (`GET`, `POST` ending active conversation, `DELETE`).
+### Phase 3 — Discovery & Blocks (`f0dc07b`)
+- `presenceService`, `pagination.js`, `toPublicMember`, `GET /api/members`, `/api/blocks/*`.
 
-### Phase 4 — Chat REST & Anti-Spam (Local Working Tree — Ready to Commit/Push)
-1. **Anti-Spam (`src/services/antiSpam.js`):**
-   - Per-user sliding windows: 5 messages / 10 s burst, 20 messages / 60 s, 10 new conversations / hour.
-   - Normalized body hash duplicate detection (`>= 3` identical bodies in 60 s -> `429 DUPLICATE_MESSAGE` + `Retry-After`) with DB backstop.
-   - Optional `STRICT_FIRST_CONTACT` cold-message guard.
-2. **Conversations & Messages (`src/modules/conversations/`):**
-   - `conversations.serializer.js`: `canonicalPair`, `toMessage`, `toConversation`.
-   - Endpoints mounted in `src/app.js`: `POST /api/conversations` (idempotent active reuse `200` / create or reactivate `201`, `403 USER_BLOCKED`), `GET /api/conversations` (cursor paginated), `GET /api/conversations/:id/messages` (newest first, `before` cursor), `POST /api/conversations/:id/messages` (1–2000 chars trimmed, idempotent `clientMsgId`, `409 CONVERSATION_ENDED`, `403 USER_BLOCKED`, `429`), `POST /api/conversations/:id/read`, `POST /api/conversations/:id/end`, `DELETE /api/conversations/:id` (soft delete; hard-deletes messages when both sides deleted), and `GET /api/unread-count`.
-   - Non-participants receive `404 NOT_FOUND` across all conversation-scoped routes.
-3. **Verification Completed:**
+### Phase 4 — Chat REST & Anti-Spam (`c045302`)
+- `antiSpam.js`, `conversations` module (`/api/conversations/*`, `/api/unread-count`).
+
+### Phase 5 — Real-time Socket.IO (Ready & Pushing to `main`)
+1. **Socket.IO Server (`src/sockets/` & `src/server.js`):**
+   - `src/sockets/index.js`: Attached Socket.IO (`/socket.io`, `websocket` + `polling`, same `CORS_ORIGINS` allow-list) to the HTTP server; `io.use` authenticates `socket.handshake.auth.token` + live DB account status via `loadUserAuthState`.
+   - `src/sockets/handlers.js`: Joins `user:<id>`, schedules JWT expiry disconnect timer, tracks multi-device presence via `presenceService`, broadcasts `presence` only to non-blocked conversation peers, updates `users.last_seen_at` on final disconnect, and relays throttled `typing:start`/`typing:stop` only for active non-blocked participants.
+   - `src/sockets/emitter.js`: Wired into REST flows for `message:new` (per-recipient `mine`), `message:read`, `conversation:ended` (end & block), and `force-logout` (password change & ready for admin suspend/ban).
+2. **Verification Completed:**
    - `npm.cmd run lint` and `npm.cmd run format:check` passed.
-   - `npm.cmd test`: 11 suites, 47 tests passed (unit + Supertest contract tests with mocked DB).
-   - Live server smoke test on port `4096`: `GET /api/conversations` and `GET /api/unread-count` unauthenticated returned `401 UNAUTHENTICATED`.
+   - `npm.cmd test`: 12 suites, 49 tests passed (including real two-client Socket.IO tests in `tests/sockets.test.js` with mocked DB).
 
 ## Active Next Step
-- **Phase 5 — Real-time Socket.IO (`docs/REALTIME.md`, `docs/API_CONTRACT.md`):**
-  - `src/sockets/index.js` + handlers attached to HTTP server in `src/server.js`
-  - JWT + DB status auth middleware on `io.use`, `user:<id>` rooms, JWT expiry disconnect timer
-  - Presence events (`presence` only to conversation peers), `message:new` delivery on REST send, `typing:start`/`typing:stop` throttled relay, `message:read` on REST read, `conversation:ended` on REST end/block, `force-logout` on password change/admin suspend/ban
-  - Two-client Socket.IO integration script/tests in `tests/`
-- **Upcoming Phases:** Phase 6 (Reports & Admin per `docs/ADMIN.md`) → Phase 7 (Hardening & Docs).
+- **Phase 6 — Reports & Admin (`docs/ADMIN.md`, `docs/API_CONTRACT.md`):**
+  - `src/modules/reports/` (`POST /api/reports` storing snapshot of last 30 messages for participants, 10/day rate limit)
+  - `src/middleware/requireAdmin.js` (`role === 'admin'`, `403 FORBIDDEN` otherwise)
+  - `src/modules/admin/` (`GET /admin/stats`, `GET /admin/users`, `GET /admin/users/:id`, `POST /admin/users/:id/suspend`, `POST /admin/users/:id/ban`, `POST /admin/users/:id/reinstate`, `POST /admin/users/:id/role`, `GET /admin/reports`, `GET /admin/reports/:id`, `PATCH /admin/reports/:id`, `GET /admin/activity`, `GET /admin/online`) with `admin_audit_log`, self-ban/last-admin guards, `force-logout` + token revocation, and `scripts/seedAdmin.js`
+- **Upcoming Phase:** Phase 7 (Hardening & Docs).

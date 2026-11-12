@@ -3,22 +3,30 @@ const app = require('./app');
 const { env } = require('./config/env');
 const logger = require('./utils/logger');
 const { closePool } = require('./db/pool');
+const { initSockets, closeSockets } = require('./sockets');
 
 const server = http.createServer(app);
+initSockets(server);
 
 function shutdown(signal) {
   logger.info({ signal }, 'Shutting down server');
-  server.close(async (err) => {
-    if (err) {
-      logger.error({ err }, 'Error closing HTTP server');
-    }
-    try {
-      await closePool();
-    } catch (poolErr) {
-      logger.error({ err: poolErr }, 'Error closing PostgreSQL pool');
-    }
-    process.exit(err ? 1 : 0);
-  });
+  closeSockets()
+    .catch((sockErr) => {
+      logger.error({ err: sockErr }, 'Error closing Socket.IO');
+    })
+    .finally(() => {
+      server.close(async (err) => {
+        if (err) {
+          logger.error({ err }, 'Error closing HTTP server');
+        }
+        try {
+          await closePool();
+        } catch (poolErr) {
+          logger.error({ err: poolErr }, 'Error closing PostgreSQL pool');
+        }
+        process.exit(err ? 1 : 0);
+      });
+    });
 }
 
 server.listen(env.PORT, () => {
