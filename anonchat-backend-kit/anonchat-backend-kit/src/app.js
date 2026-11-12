@@ -7,6 +7,8 @@ const pinoHttp = require('pino-http');
 const { env } = require('./config/env');
 const logger = require('./utils/logger');
 const { globalLimiter } = require('./middleware/rateLimiters');
+const authRoutes = require('./modules/auth/auth.routes');
+const usersRoutes = require('./modules/users/users.routes');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -61,6 +63,9 @@ app.get('/api/health', (_req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+app.use('/api/auth', authRoutes);
+app.use('/api/me', usersRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
