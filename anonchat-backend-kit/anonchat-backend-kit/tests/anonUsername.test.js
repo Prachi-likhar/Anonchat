@@ -45,4 +45,3 @@ describe('anonUsername generator', () => {
     ).rejects.toThrow('duplicate email');
   });
 });
-

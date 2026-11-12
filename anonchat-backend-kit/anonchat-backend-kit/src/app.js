@@ -9,6 +9,8 @@ const logger = require('./utils/logger');
 const { globalLimiter } = require('./middleware/rateLimiters');
 const authRoutes = require('./modules/auth/auth.routes');
 const usersRoutes = require('./modules/users/users.routes');
+const membersRoutes = require('./modules/members/members.routes');
+const blocksRoutes = require('./modules/blocks/blocks.routes');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -66,6 +68,8 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/me', usersRoutes);
+app.use('/api/members', membersRoutes);
+app.use('/api/blocks', blocksRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

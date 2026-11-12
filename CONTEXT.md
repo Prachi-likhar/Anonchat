@@ -10,29 +10,26 @@
 ## What Has Been Done
 
 ### Phase 0 & Phase 1 — Backend Scaffold & Foundation (Committed & Pushed: `623ddf9` on `main`)
-1. **Tooling & Configuration:** `package.json` (CommonJS, Node `>=20`, pinned deps), `.env.example`, `.gitignore`, `eslint.config.js` (flat config), `.prettierrc`, `.prettierignore`, `jest.config.js`, and `AGENTS.md` folder layout.
-2. **Core Foundation:** `src/config/env.js` (Zod-validated env), `src/utils/logger.js` (`pino` with redaction), `src/db/pool.js` (`Pool`, `query`, `withTransaction`), `db/migrations/001_init.sql`, `scripts/migrate.js`, `src/utils/AppError.js`, `src/utils/asyncHandler.js`, `src/middleware/validate.js`, `src/middleware/notFound.js`, `src/middleware/errorHandler.js`, `src/middleware/rateLimiters.js`, `src/app.js`, `src/server.js`, and `GET /api/health`.
+- Tooling (`package.json`, `.env.example`, `.gitignore`, `eslint.config.js`, `.prettierrc`, `jest.config.js`), `src/config/env.js`, `src/utils/logger.js`, `src/db/pool.js`, `db/migrations/001_init.sql`, `scripts/migrate.js`, `AppError`, `asyncHandler`, `validate`, `notFound`, `errorHandler`, `globalLimiter`, `src/app.js`, `src/server.js`, `GET /api/health`.
 
-### Phase 2 — Auth & User Profile (Local Working Tree — Ready to Commit/Push)
-1. **Anonymous Username & Services:**
-   - `src/utils/anonUsername.js`: Generates `Anonymous_<N>` (`[100, 9999]`), retries `23505` collisions up to 10 times per tier and widens range ×10.
-   - `src/services/otpService.js`: 6-digit OTP generation, `sha256(code:userId:pepper)` hashing, `timingSafeEqual` verification, 5-attempt invalidation, Apps Script Web App delivery (deleting OTP row on failure and returning `503 EMAIL_SERVICE_UNAVAILABLE`), plus `DEV ONLY` console fallback in development.
-   - `src/services/tokenService.js`: HS256 access JWTs, 48-byte opaque refresh tokens stored as SHA-256 hashes with `family_id` rotation and reuse theft detection (revokes entire family on reuse).
-2. **Auth Middleware & Rate Limiters:**
-   - `src/middleware/auth.js`: `authenticate` verifies Bearer JWT + live DB status (`active`/`suspended`/`banned`/verified) with 15 s cache, cache invalidation helper, and expired suspension auto-lift.
-   - `src/middleware/rateLimiters.js`: Added `registerLimiter` (5/hr/IP), `loginLimiter` (10/15m IP+email), `otpCooldownLimiter` (1/60s IP+email), and `otpHourlyLimiter` (5/hr IP+email).
-3. **Endpoints Implemented & Mounted in `src/app.js`:**
-   - `/api/auth`: `POST /register`, `POST /verify-email`, `POST /resend-otp`, `POST /login` (constant-time bcrypt compare + 5-fail 15-min lockout), `POST /refresh`, `POST /logout`, `POST /forgot-password`, `POST /reset-password` (web `httpOnly` cookie `refresh_token` vs mobile `X-Client: mobile` body `{ refreshToken }`).
-   - `/api/me`: `GET /me`, `PATCH /me`, `POST /me/change-password`, `DELETE /me`, and `src/modules/users/users.serializer.js` (`toMe`).
-4. **Verification Completed:**
+### Phase 2 — Auth & User Profile (Committed & Pushed: `03ab9fe` on `main`)
+- `src/utils/anonUsername.js`, `src/services/otpService.js`, `src/services/tokenService.js`, `src/middleware/auth.js`, auth rate limiters, `/api/auth/*` (`register`, `verify-email`, `resend-otp`, `login`, `refresh`, `logout`, `forgot-password`, `reset-password`), `/api/me/*` (`GET`, `PATCH`, `change-password`, `DELETE`), and `CONTEXT.md` + root `.gitignore`.
+
+### Phase 3 — Discovery & Blocks (Local Working Tree — Ready to Commit/Push)
+1. **Presence & Pagination Utilities:**
+   - `src/services/presenceService.js`: In-memory multi-device `Map<userId, connectionCount>` (`addConnection`, `removeConnection`, `isOnline`, `getOnlineUserIds`, `getOnlineCount`).
+   - `src/utils/pagination.js`: `escapeLike` (`%`, `_`, `\`), opaque base64url cursor `encodeCursor`/`decodeCursor` (400 on malformed cursor), `slicePage`.
+2. **Public Serializer & Endpoints:**
+   - `src/modules/users/users.serializer.js`: Added `toPublicMember` returning exact keys (`id`, `anonUsername`, `gender`, `avatarColor`, `isOnline`, `blockedByMe`).
+   - `src/modules/members/`: `GET /api/members` supporting `filter=all|male|female|online`, `search`, `limit`, and `cursor`, excluding self, unverified, suspended/banned, `role='admin'`, and two-way blocks.
+   - `src/modules/blocks/`: `POST /api/blocks` (transactional block + end active conversation), `DELETE /api/blocks/:memberId`, and `GET /api/blocks`, mounted in `src/app.js`.
+3. **Verification Completed:**
    - `npm.cmd run lint` and `npm.cmd run format:check` passed.
-   - `npm.cmd test`: 7 suites, 29 tests passed (unit + Supertest contract tests with mocked DB/OTP services).
-   - Live server smoke test on port `4098`: `GET /api/me` unauthenticated → `401 UNAUTHENTICATED`, invalid `POST /api/auth/register` → `400 VALIDATION_ERROR`.
-   - *Manual note:* Backend reads `.env` from `anonchat-backend-kit/anonchat-backend-kit/.env` (root `.gitignore` also protects `.env` at repo root). Run `npm.cmd run migrate` once PostgreSQL is configured.
+   - `npm.cmd test`: 9 suites, 39 tests passed (unit + Supertest contract & privacy tests with mocked DB).
+   - Live server smoke test on port `4097`: `GET /api/members` and `GET /api/blocks` unauthenticated returned `401 UNAUTHENTICATED`.
 
 ## Active Next Step
-- **Phase 3 — Discovery + Blocks (`docs/API_CONTRACT.md`, `docs/AUTH_SECURITY.md`, `docs/DATABASE_SCHEMA.md`):**
-  - `toPublicMember(row)` serializer + unit test asserting exact public key set (`id`, `anonUsername`, `gender`, `avatarColor`, `isOnline`, `blockedByMe`)
-  - `GET /api/members` (filter `all|male|female|online`, partial `anonUsername` search, cursor pagination, excluding self, unverified/suspended/banned/admin users, and both-way blocks)
-  - `POST /api/blocks`, `DELETE /api/blocks/:memberId`, `GET /api/blocks` (blocking ends active conversations)
-- **Upcoming Phases:** Phase 4 (Chat REST) → Phase 5 (Socket.IO) → Phase 6 (Reports & Admin per `docs/ADMIN.md`) → Phase 7 (Hardening & Docs).
+- **Phase 4 — Chat REST (`docs/API_CONTRACT.md`, `docs/AUTH_SECURITY.md`, `docs/DATABASE_SCHEMA.md`):**
+  - `src/services/antiSpam.js` (20 msgs/min, 5 msgs/10s burst, >=3 identical normalized bodies in 60s -> `DUPLICATE_MESSAGE`, optional `STRICT_FIRST_CONTACT`)
+  - `src/modules/conversations/`: `POST /conversations`, `GET /conversations`, `GET /conversations/:id/messages`, `POST /conversations/:id/messages`, `POST /conversations/:id/read`, `POST /conversations/:id/end`, `DELETE /conversations/:id`, `GET /unread-count`
+- **Upcoming Phases:** Phase 5 (Socket.IO) → Phase 6 (Reports & Admin per `docs/ADMIN.md`) → Phase 7 (Hardening & Docs).

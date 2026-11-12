@@ -19,4 +19,3 @@ router.post(
 router.delete('/', validate(deleteMeSchema), asyncHandler(usersController.deleteMe));
 
 module.exports = router;
-

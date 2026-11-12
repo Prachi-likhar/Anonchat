@@ -97,4 +97,3 @@ describe('tokenService', () => {
     expect(client.query.mock.calls[1][1]).toEqual(['fam-compromised']);
   });
 });
-
