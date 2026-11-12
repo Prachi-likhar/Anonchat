@@ -84,4 +84,3 @@ async function listMembers(meId, { filter = 'all', search = '', limit = 20, curs
 module.exports = {
   listMembers,
 };
-

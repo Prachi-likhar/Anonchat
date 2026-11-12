@@ -209,4 +209,3 @@ describe('Members discovery and Blocks API', () => {
     );
   });
 });
-

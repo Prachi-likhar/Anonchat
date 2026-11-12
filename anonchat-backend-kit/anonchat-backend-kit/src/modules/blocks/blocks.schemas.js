@@ -16,4 +16,3 @@ module.exports = {
   blockMemberSchema,
   unblockMemberSchema,
 };
-

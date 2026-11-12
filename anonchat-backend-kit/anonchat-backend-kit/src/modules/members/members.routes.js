@@ -11,4 +11,3 @@ router.use(authenticate);
 router.get('/', validate(listMembersSchema), asyncHandler(membersController.listMembers));
 
 module.exports = router;
-

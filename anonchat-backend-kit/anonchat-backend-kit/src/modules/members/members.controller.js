@@ -8,4 +8,3 @@ async function listMembers(req, res) {
 module.exports = {
   listMembers,
 };
-

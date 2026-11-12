@@ -68,4 +68,3 @@ module.exports = {
   decodeCursor,
   slicePage,
 };
-

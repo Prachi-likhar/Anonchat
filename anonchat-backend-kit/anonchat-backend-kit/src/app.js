@@ -11,6 +11,10 @@ const authRoutes = require('./modules/auth/auth.routes');
 const usersRoutes = require('./modules/users/users.routes');
 const membersRoutes = require('./modules/members/members.routes');
 const blocksRoutes = require('./modules/blocks/blocks.routes');
+const conversationsRoutes = require('./modules/conversations/conversations.routes');
+const conversationsController = require('./modules/conversations/conversations.controller');
+const { authenticate } = require('./middleware/auth');
+const asyncHandler = require('./utils/asyncHandler');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -70,6 +74,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/me', usersRoutes);
 app.use('/api/members', membersRoutes);
 app.use('/api/blocks', blocksRoutes);
+app.use('/api/conversations', conversationsRoutes);
+app.get('/api/unread-count', authenticate, asyncHandler(conversationsController.getUnreadCount));
 
 app.use(notFound);
 app.use(errorHandler);

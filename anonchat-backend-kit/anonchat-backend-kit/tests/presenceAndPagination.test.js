@@ -87,4 +87,3 @@ describe('pagination helpers', () => {
     expect(page2.nextCursor).toBeNull();
   });
 });
-

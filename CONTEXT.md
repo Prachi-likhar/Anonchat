@@ -10,26 +10,32 @@
 ## What Has Been Done
 
 ### Phase 0 & Phase 1 — Backend Scaffold & Foundation (Committed & Pushed: `623ddf9` on `main`)
-- Tooling (`package.json`, `.env.example`, `.gitignore`, `eslint.config.js`, `.prettierrc`, `jest.config.js`), `src/config/env.js`, `src/utils/logger.js`, `src/db/pool.js`, `db/migrations/001_init.sql`, `scripts/migrate.js`, `AppError`, `asyncHandler`, `validate`, `notFound`, `errorHandler`, `globalLimiter`, `src/app.js`, `src/server.js`, `GET /api/health`.
+- Tooling, Zod env config (`src/config/env.js`), `pino` redaction logger, `pg` pool + transactions, `db/migrations/001_init.sql`, `scripts/migrate.js`, `AppError`, `asyncHandler`, `validate`, `notFound`, `errorHandler`, `globalLimiter`, `src/app.js`, `src/server.js`, `GET /api/health`.
 
 ### Phase 2 — Auth & User Profile (Committed & Pushed: `03ab9fe` on `main`)
-- `src/utils/anonUsername.js`, `src/services/otpService.js`, `src/services/tokenService.js`, `src/middleware/auth.js`, auth rate limiters, `/api/auth/*` (`register`, `verify-email`, `resend-otp`, `login`, `refresh`, `logout`, `forgot-password`, `reset-password`), `/api/me/*` (`GET`, `PATCH`, `change-password`, `DELETE`), and `CONTEXT.md` + root `.gitignore`.
+- `anonUsername`, `otpService` (Apps Script + dev fallback), `tokenService` (access JWT + refresh rotation/reuse detection), `authenticate` middleware (DB status check + 15 s cache), auth rate limiters, `/api/auth/*`, `/api/me/*`, `CONTEXT.md`, root `.gitignore`.
 
-### Phase 3 — Discovery & Blocks (Local Working Tree — Ready to Commit/Push)
-1. **Presence & Pagination Utilities:**
-   - `src/services/presenceService.js`: In-memory multi-device `Map<userId, connectionCount>` (`addConnection`, `removeConnection`, `isOnline`, `getOnlineUserIds`, `getOnlineCount`).
-   - `src/utils/pagination.js`: `escapeLike` (`%`, `_`, `\`), opaque base64url cursor `encodeCursor`/`decodeCursor` (400 on malformed cursor), `slicePage`.
-2. **Public Serializer & Endpoints:**
-   - `src/modules/users/users.serializer.js`: Added `toPublicMember` returning exact keys (`id`, `anonUsername`, `gender`, `avatarColor`, `isOnline`, `blockedByMe`).
-   - `src/modules/members/`: `GET /api/members` supporting `filter=all|male|female|online`, `search`, `limit`, and `cursor`, excluding self, unverified, suspended/banned, `role='admin'`, and two-way blocks.
-   - `src/modules/blocks/`: `POST /api/blocks` (transactional block + end active conversation), `DELETE /api/blocks/:memberId`, and `GET /api/blocks`, mounted in `src/app.js`.
+### Phase 3 — Discovery & Blocks (Committed & Pushed: `f0dc07b` on `main`)
+- `presenceService`, `pagination.js` (`escapeLike`, opaque cursors), `toPublicMember` exact-key serializer, `GET /api/members`, and `/api/blocks` (`GET`, `POST` ending active conversation, `DELETE`).
+
+### Phase 4 — Chat REST & Anti-Spam (Local Working Tree — Ready to Commit/Push)
+1. **Anti-Spam (`src/services/antiSpam.js`):**
+   - Per-user sliding windows: 5 messages / 10 s burst, 20 messages / 60 s, 10 new conversations / hour.
+   - Normalized body hash duplicate detection (`>= 3` identical bodies in 60 s -> `429 DUPLICATE_MESSAGE` + `Retry-After`) with DB backstop.
+   - Optional `STRICT_FIRST_CONTACT` cold-message guard.
+2. **Conversations & Messages (`src/modules/conversations/`):**
+   - `conversations.serializer.js`: `canonicalPair`, `toMessage`, `toConversation`.
+   - Endpoints mounted in `src/app.js`: `POST /api/conversations` (idempotent active reuse `200` / create or reactivate `201`, `403 USER_BLOCKED`), `GET /api/conversations` (cursor paginated), `GET /api/conversations/:id/messages` (newest first, `before` cursor), `POST /api/conversations/:id/messages` (1–2000 chars trimmed, idempotent `clientMsgId`, `409 CONVERSATION_ENDED`, `403 USER_BLOCKED`, `429`), `POST /api/conversations/:id/read`, `POST /api/conversations/:id/end`, `DELETE /api/conversations/:id` (soft delete; hard-deletes messages when both sides deleted), and `GET /api/unread-count`.
+   - Non-participants receive `404 NOT_FOUND` across all conversation-scoped routes.
 3. **Verification Completed:**
    - `npm.cmd run lint` and `npm.cmd run format:check` passed.
-   - `npm.cmd test`: 9 suites, 39 tests passed (unit + Supertest contract & privacy tests with mocked DB).
-   - Live server smoke test on port `4097`: `GET /api/members` and `GET /api/blocks` unauthenticated returned `401 UNAUTHENTICATED`.
+   - `npm.cmd test`: 11 suites, 47 tests passed (unit + Supertest contract tests with mocked DB).
+   - Live server smoke test on port `4096`: `GET /api/conversations` and `GET /api/unread-count` unauthenticated returned `401 UNAUTHENTICATED`.
 
 ## Active Next Step
-- **Phase 4 — Chat REST (`docs/API_CONTRACT.md`, `docs/AUTH_SECURITY.md`, `docs/DATABASE_SCHEMA.md`):**
-  - `src/services/antiSpam.js` (20 msgs/min, 5 msgs/10s burst, >=3 identical normalized bodies in 60s -> `DUPLICATE_MESSAGE`, optional `STRICT_FIRST_CONTACT`)
-  - `src/modules/conversations/`: `POST /conversations`, `GET /conversations`, `GET /conversations/:id/messages`, `POST /conversations/:id/messages`, `POST /conversations/:id/read`, `POST /conversations/:id/end`, `DELETE /conversations/:id`, `GET /unread-count`
-- **Upcoming Phases:** Phase 5 (Socket.IO) → Phase 6 (Reports & Admin per `docs/ADMIN.md`) → Phase 7 (Hardening & Docs).
+- **Phase 5 — Real-time Socket.IO (`docs/REALTIME.md`, `docs/API_CONTRACT.md`):**
+  - `src/sockets/index.js` + handlers attached to HTTP server in `src/server.js`
+  - JWT + DB status auth middleware on `io.use`, `user:<id>` rooms, JWT expiry disconnect timer
+  - Presence events (`presence` only to conversation peers), `message:new` delivery on REST send, `typing:start`/`typing:stop` throttled relay, `message:read` on REST read, `conversation:ended` on REST end/block, `force-logout` on password change/admin suspend/ban
+  - Two-client Socket.IO integration script/tests in `tests/`
+- **Upcoming Phases:** Phase 6 (Reports & Admin per `docs/ADMIN.md`) → Phase 7 (Hardening & Docs).

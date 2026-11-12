@@ -12,4 +12,3 @@ const listMembersSchema = {
 module.exports = {
   listMembersSchema,
 };
-
