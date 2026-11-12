@@ -1,11 +1,10 @@
 # Next Steps
-Phase 5 (Real-time Socket.IO) is complete.
+Phase 6 (Reports & Admin — `docs/ADMIN.md`) is complete.
 
-Next build phase:
-1. **Phase 6 — Reports & Admin (`docs/ADMIN.md`, `docs/API_CONTRACT.md`, `docs/TESTING.md`):**
-   - `src/modules/reports/` (`POST /api/reports`, rate limit 10/day, server snapshot of last 30 messages with anon usernames only if reporter is a participant, cannot report admins)
-   - `src/middleware/requireAdmin.js` (router-level `router.use(authenticate, requireAdmin)`)
-   - `src/modules/admin/` (`GET /admin/stats`, `GET /admin/users`, `GET /admin/users/:id`, `POST /admin/users/:id/suspend`, `POST /admin/users/:id/ban`, `POST /admin/users/:id/reinstate`, `POST /admin/users/:id/role`, `GET /admin/reports`, `GET /admin/reports/:id`, `PATCH /admin/reports/:id`, `GET /admin/activity`, `GET /admin/online`)
-   - Enforce `admin_audit_log`, prevent self-ban & banning last admin, hide `fullName` unless `ADMIN_CAN_SEE_FULL_NAME=true`, revoke tokens + emit `force-logout` on suspend/ban, and implement `scripts/seedAdmin.js`
-   - Jest + Supertest tests for reports & admin (`non-admin 403`, `suspend` kills active socket + revokes tokens, stats counts, no arbitrary chat reading)
-2. **Phase 7 — Hardening & docs (`docs/DEPLOY.md`, OpenAPI/Postman collection, security checklist, load sanity test)**
+Final backend phase:
+1. **Phase 7 — Hardening & Docs (`docs/BUILD_PLAN.md`, `docs/SECURITY_PRIVACY_CHECKLIST.md`):**
+   - Create `docs/DEPLOY.md` (env setup, Postgres migrations + `seed:admin`, reverse proxy with WebSocket `/socket.io` upgrade, HTTPS, automated DB backups)
+   - Create `openapi.yaml` (full API contract spec for REST endpoints)
+   - Add load sanity test script (`scripts/loadSanity.js` or `tests/` helper) for message sending
+   - Verify and check off `docs/SECURITY_PRIVACY_CHECKLIST.md`
+   - Run full `error-review` (`lint`, `format:check`, `test`, privacy audit) and verify clean README quick-start instructions

@@ -80,6 +80,14 @@ const otpHourlyLimiter = createRateLimiter({
   message: 'Too many verification code requests, please try again later.',
 });
 
+// Reports: 10/day per authenticated user
+const reportsLimiter = createRateLimiter({
+  windowMs: 24 * 60 * 60 * 1000,
+  limit: env.NODE_ENV === 'test' ? 1000 : 10,
+  keyGenerator: (req) => req.user?.id || ipKeyGenerator(req.ip || 'unknown'),
+  message: 'Daily report limit reached. Please try again tomorrow.',
+});
+
 module.exports = {
   createRateLimiter,
   globalLimiter,
@@ -87,4 +95,5 @@ module.exports = {
   loginLimiter,
   otpCooldownLimiter,
   otpHourlyLimiter,
+  reportsLimiter,
 };

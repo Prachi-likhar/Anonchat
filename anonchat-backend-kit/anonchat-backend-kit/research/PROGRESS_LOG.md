@@ -1,29 +1,32 @@
 # Progress Log
 Newest entry at the top. Every prompt gets a PLANNED entry before coding and DONE lines as work completes.
 
-## DONE — 2026-11-12 — Phase 5 (Real-time Socket.IO)
-- **Prompt (my words):** Push Phase 4 (`c045302`) directly to `origin/main` (done) and implement Phase 5 of `docs/BUILD_PLAN.md`: Socket.IO server attached to HTTP server, JWT + DB status auth middleware, `user:<id>` rooms, JWT expiry disconnect timer, `presenceService` online/offline events scoped to conversation peers + `users.last_seen_at` update, throttled `typing:start`/`typing:stop`, REST hooks for `message:new`, `message:read`, `conversation:ended` (end & block), and `force-logout` (password change & admin ready), plus two-client Socket.IO tests, `error-review`, and push to `origin/main`.
+## DONE — 2026-11-12 — Phase 6 (Reports & Admin — docs/ADMIN.md)
+- **Prompt (my words):** Start and complete Phase 6 of `docs/BUILD_PLAN.md` (`docs/ADMIN.md`): `POST /api/reports` with snapshot of last 30 messages & 10/day rate limit, `requireAdmin` middleware, all `/api/admin/*` endpoints, `admin_audit_log` entries, `seedAdmin.js`, Jest + Supertest tests, `error-review`, and push directly to `origin/main`.
 - **Already done:**
-  - Phase 0 & 1 (`623ddf9`), Phase 2 (`03ab9fe`), Phase 3 (`f0dc07b`), Phase 4 (`c045302`).
+  - Phases 0–5 complete and pushed (`4d3fd16`).
 - **To do now:**
-  1. Install `socket.io-client` devDependency for real two-client Socket.IO tests.
-  2. Implement `src/sockets/emitter.js`, `src/sockets/handlers.js`, `src/sockets/index.js` and attach in `src/server.js`.
-  3. Wire socket emitters into `conversations.service.js`, `blocks.service.js`, and `users.service.js`.
-  4. Write two-client Socket.IO integration tests in `tests/sockets.test.js`, run `error-review`, update research logs & `CONTEXT.md`, and push directly to `origin/main`.
+  1. Add `reportsLimiter` and `src/middleware/requireAdmin.js`.
+  2. Implement `src/modules/reports/` (`POST /api/reports` with 30-message anon snapshot).
+  3. Implement `src/modules/admin/` (all 12 `/api/admin/*` endpoints, serializers, audit log, self-ban/last-admin guards, token revocation + `force-logout`) and `scripts/seedAdmin.js`.
+  4. Mount `/api/reports` and `/api/admin` in `src/app.js`.
+  5. Add `tests/reportsAndAdmin.test.js`, run `error-review`, update `CONTEXT.md`, `PROGRESS_LOG.md`, `ERRORS_LOG.md`, `NEXT_STEPS.md`, and push directly to `origin/main`.
 - **Not in scope / later:**
-  - Phase 6 (Reports & Admin — `docs/ADMIN.md`), Phase 7 (Hardening & Deploy).
+  - Phase 7 (Hardening & Deploy docs, OpenAPI/Postman collection, load sanity test).
 - **Risks & ambiguities:**
-  - Socket listeners must be registered synchronously before async presence broadcasts so early disconnects/typing events are never missed.
+  - Admins never see arbitrary conversation content outside `reports.snapshot`, nor `password_hash`, nor `fullName` unless `ADMIN_CAN_SEE_FULL_NAME=true`.
 - **Info I lack → will research:**
   - None.
 - **Skills needed:**
   - `prompt-review` (done), `error-review` (done).
 - **DONE:**
-  - `DONE:` Committed and pushed Phase 4 (`c045302`) to `origin/main`.
-  - `DONE:` Installed `socket.io-client@4.8.4` devDependency.
-  - `DONE:` Implemented `src/sockets/emitter.js`, `src/sockets/handlers.js`, `src/sockets/index.js`, and wired Socket.IO lifecycle in `src/server.js`.
-  - `DONE:` Wired `message:new`, `message:read`, `conversation:ended` (end + block), and `force-logout` (change-password) in services.
-  - `DONE:` Added two-client Socket.IO tests in `tests/sockets.test.js`; `npm run lint`, `npm run format:check`, privacy grep, and `npm test` (12 suites, 49 tests) all pass.
+  - `DONE:` Added `reportsLimiter` in `src/middleware/rateLimiters.js` and `src/middleware/requireAdmin.js`.
+  - `DONE:` Implemented `src/modules/reports/` (`POST /api/reports`) and `src/modules/admin/` (`GET /stats`, `GET /users`, `GET /users/:id`, `POST /users/:id/suspend|ban|reinstate|role`, `GET /reports`, `GET /reports/:id`, `PATCH /reports/:id`, `GET /activity`, `GET /online`), plus `scripts/seedAdmin.js`.
+  - `DONE:` Mounted `/api/reports` and `/api/admin` in `src/app.js`.
+  - `DONE:` Added `tests/reportsAndAdmin.test.js`; `npm run lint`, `npm run format:check`, privacy grep, live HTTP smoke check, and `npm test` (13 suites, 56 tests) all pass.
+
+## DONE — 2026-11-12 — Phase 5 (Real-time Socket.IO)
+- `DONE:` Completed Phase 5 and pushed as `4d3fd16`.
 
 ## DONE — 2026-11-12 — Phase 4 (Chat REST + Anti-Spam)
 - `DONE:` Completed Phase 4 and pushed as `c045302`.

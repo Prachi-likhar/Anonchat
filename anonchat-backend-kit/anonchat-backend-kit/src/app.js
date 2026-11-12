@@ -13,6 +13,8 @@ const membersRoutes = require('./modules/members/members.routes');
 const blocksRoutes = require('./modules/blocks/blocks.routes');
 const conversationsRoutes = require('./modules/conversations/conversations.routes');
 const conversationsController = require('./modules/conversations/conversations.controller');
+const reportsRoutes = require('./modules/reports/reports.routes');
+const adminRoutes = require('./modules/admin/admin.routes');
 const { authenticate } = require('./middleware/auth');
 const asyncHandler = require('./utils/asyncHandler');
 const notFound = require('./middleware/notFound');
@@ -76,6 +78,8 @@ app.use('/api/members', membersRoutes);
 app.use('/api/blocks', blocksRoutes);
 app.use('/api/conversations', conversationsRoutes);
 app.get('/api/unread-count', authenticate, asyncHandler(conversationsController.getUnreadCount));
+app.use('/api/reports', reportsRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

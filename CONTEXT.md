@@ -21,18 +21,25 @@
 ### Phase 4 — Chat REST & Anti-Spam (`c045302`)
 - `antiSpam.js`, `conversations` module (`/api/conversations/*`, `/api/unread-count`).
 
-### Phase 5 — Real-time Socket.IO (Ready & Pushing to `main`)
-1. **Socket.IO Server (`src/sockets/` & `src/server.js`):**
-   - `src/sockets/index.js`: Attached Socket.IO (`/socket.io`, `websocket` + `polling`, same `CORS_ORIGINS` allow-list) to the HTTP server; `io.use` authenticates `socket.handshake.auth.token` + live DB account status via `loadUserAuthState`.
-   - `src/sockets/handlers.js`: Joins `user:<id>`, schedules JWT expiry disconnect timer, tracks multi-device presence via `presenceService`, broadcasts `presence` only to non-blocked conversation peers, updates `users.last_seen_at` on final disconnect, and relays throttled `typing:start`/`typing:stop` only for active non-blocked participants.
-   - `src/sockets/emitter.js`: Wired into REST flows for `message:new` (per-recipient `mine`), `message:read`, `conversation:ended` (end & block), and `force-logout` (password change & ready for admin suspend/ban).
-2. **Verification Completed:**
+### Phase 5 — Real-time Socket.IO (`4d3fd16`)
+- `src/sockets/` (`index.js`, `handlers.js`, `emitter.js`) wired into `src/server.js`, `conversations.service.js`, `blocks.service.js`, and `users.service.js`.
+
+### Phase 6 — Reports & Admin (`docs/ADMIN.md`) (Ready & Pushing to `main`)
+1. **Reports (`src/modules/reports/`):**
+   - `POST /api/reports`: Rate-limited (`reportsLimiter`, 10/day per user), rejects self-reporting and reporting admin accounts, validates conversation participation, and stores a chronological snapshot of the last 30 messages using anon usernames only.
+2. **Admin & Moderation (`src/middleware/requireAdmin.js`, `src/modules/admin/`, `scripts/seedAdmin.js`):**
+   - Router-level `authenticate` + `requireAdmin` (`403 FORBIDDEN` for non-admins).
+   - Endpoints mounted at `/api/admin`: `GET /stats`, `GET /users`, `GET /users/:id`, `POST /users/:id/suspend`, `POST /users/:id/ban`, `POST /users/:id/reinstate`, `POST /users/:id/role` (super-admin only via `SUPER_ADMIN_EMAIL`), `GET /reports`, `GET /reports/:id` (snapshot labeled `Reporter` / `Reported` with anon usernames only), `PATCH /reports/:id` (workflow `open -> reviewing -> resolved/dismissed` + atomic suspend/ban), `GET /activity`, `GET /online`.
+   - Every moderation action writes `admin_audit_log`, prevents self-ban and banning/suspending the last active admin, revokes refresh tokens + emits `force-logout`, and hides `fullName` unless `ADMIN_CAN_SEE_FULL_NAME=true`.
+   - `scripts/seedAdmin.js`: Idempotently seeds `Anonymous_Admin` from `SUPER_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD`.
+3. **Verification Completed:**
    - `npm.cmd run lint` and `npm.cmd run format:check` passed.
-   - `npm.cmd test`: 12 suites, 49 tests passed (including real two-client Socket.IO tests in `tests/sockets.test.js` with mocked DB).
+   - `npm.cmd test`: 13 suites, 56 tests passed (with mocked DB).
+   - Live server smoke test on port `4095`: `GET /api/admin/stats` and `POST /api/reports` unauthenticated returned `401 UNAUTHENTICATED`.
 
 ## Active Next Step
-- **Phase 6 — Reports & Admin (`docs/ADMIN.md`, `docs/API_CONTRACT.md`):**
-  - `src/modules/reports/` (`POST /api/reports` storing snapshot of last 30 messages for participants, 10/day rate limit)
-  - `src/middleware/requireAdmin.js` (`role === 'admin'`, `403 FORBIDDEN` otherwise)
-  - `src/modules/admin/` (`GET /admin/stats`, `GET /admin/users`, `GET /admin/users/:id`, `POST /admin/users/:id/suspend`, `POST /admin/users/:id/ban`, `POST /admin/users/:id/reinstate`, `POST /admin/users/:id/role`, `GET /admin/reports`, `GET /admin/reports/:id`, `PATCH /admin/reports/:id`, `GET /admin/activity`, `GET /admin/online`) with `admin_audit_log`, self-ban/last-admin guards, `force-logout` + token revocation, and `scripts/seedAdmin.js`
-- **Upcoming Phase:** Phase 7 (Hardening & Docs).
+- **Phase 7 — Hardening & Docs (`docs/BUILD_PLAN.md`, `docs/SECURITY_PRIVACY_CHECKLIST.md`):**
+  - `docs/DEPLOY.md` (env, Postgres, reverse proxy with WebSocket upgrade, HTTPS, backups)
+  - `openapi.yaml` (or Postman/Thunder Client collection)
+  - Load sanity test script for message sending
+  - Full `docs/SECURITY_PRIVACY_CHECKLIST.md` verification and README quick-start check
