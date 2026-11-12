@@ -1,0 +1,9 @@
+node_modules/
+coverage/
+db/
+docs/
+research/
+apps-script/
+.agent/
+*.md
+package-lock.json
