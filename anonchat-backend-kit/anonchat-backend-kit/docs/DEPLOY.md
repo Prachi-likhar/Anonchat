@@ -99,3 +99,4 @@ server {
 - Test restores monthly into a staging DB and re-run `npm run migrate` as a verification step.
 - **Process supervision:** Run `node src/server.js` via systemd or PM2 (`SIGINT`/`SIGTERM` triggers graceful HTTP, Socket.IO, and PostgreSQL pool shutdown).
 - **Horizontal scaling (v2+):** Replace in-memory `presenceService` and `antiSpam` stores with Redis and attach `@socket.io/redis-adapter`.
+

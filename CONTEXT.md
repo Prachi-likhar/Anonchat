@@ -4,8 +4,28 @@
 
 ## Repository Layout
 - **Backend (`anonchat-backend-kit/anonchat-backend-kit/`):** Complete Node.js + Express (v5, CommonJS) + PostgreSQL + Socket.IO API server (Phases 0–7 completed, tested, and pushed).
-- **Web (`anonchat-web-kit/anonchat-web-kit/`):** React + TypeScript + Vite + Tailwind CSS starter kit (ready for implementation against the backend API contract).
+- **Web (`anonchat-web-kit/anonchat-web-kit/`):** React 18 + TypeScript + Vite + Tailwind CSS frontend application (Phases 0–1 completed and tested).
 - **Mobile (`anonchat-mobile-app-kit/anonchat-mobile-app-kit/`):** React Native (Expo) + TypeScript + NativeWind starter kit (ready for implementation against the backend API contract).
+
+## Web Frontend Completed Work (Phases 0 & 1)
+
+### Phase 0 & Phase 1 — Scaffold & Foundation
+- Initialized React 18 + TypeScript (strict) + Vite 5 + Tailwind CSS 3.4 with path aliases (`@/*`).
+- Configured design tokens in `tailwind.config.js` and `src/index.css` (`bg`, `surface`, `surface-2`, `border`, `text`, `muted`, `primary`, `accent-gradient`, `online`, `gender`).
+- Installed `@rollup/wasm-node` fallback with `scripts/patchRollup.js` and npm `postinstall` hook to guarantee seamless builds under Windows Application Control / AppLocker environments.
+- Implemented `src/types/api.ts` directly adhering 1:1 to `docs/API_CONTRACT.md`.
+- Implemented `src/lib/` utilities: `cn.ts` (twMerge), `errors.ts` (API error code mapper), `format.ts` (date, time, anon initials, masked email), `validators.ts` (Zod schemas matching backend).
+- Implemented state stores:
+  - `themeStore.ts`: `system|light|dark` with localStorage persistence and automatic OS preference sync.
+  - `authStore.ts`: in-memory access token storage (never localStorage), user state, auth flags, silent refresh bootstrap.
+  - `toastStore.ts`: global accessible toast notification queue.
+- Implemented `src/api/client.ts`: Axios client configured with `withCredentials: true`, access token header injection, and single in-flight 401 refresh queue against `/auth/refresh`.
+- Implemented API modules: `auth.ts`, `me.ts`, `members.ts`, `conversations.ts`, `blocks.ts`, `reports.ts`, `admin.ts`.
+- Implemented UI primitives in `src/components/ui/`: `Button`, `Input`, `Select`, `SegmentedControl`, `Card`, `Avatar`, `Badge`, `GenderBadge`, `Modal`, `ConfirmDialog`, `Toast`, `ToastContainer`, `Skeleton`, `EmptyState`, `Spinner`, `ThemeToggle`.
+- Implemented layouts and route guards: `PublicLayout`, `AppLayout` (with desktop left rail, mobile bottom bar, header), `AdminLayout`, `ProtectedRoute`, `AdminRoute`, `PublicOnlyRoute`, `NotFound`.
+- Implemented `/dev/ui` design system gallery showcasing all component variants, themes, and states.
+- Implemented test suites in `src/__tests__/`: 5 test files, 23 tests covering validators, formatting, error mapping, UI primitives, and privacy assertions (zero leakage of private identifiers).
+- Verification passed: `npm run typecheck` clean, `npm run lint` clean, `npm run format:check` clean, `npm run build` generates production bundle, `npm test` (23/23 tests passed).
 
 ## Backend Completed Work (Phases 0–7)
 
@@ -44,15 +64,8 @@
 - Auditing: `admin_audit_log` writes on all actions, self-ban and last-admin guards, token revocation + socket `force-logout`.
 - `scripts/seedAdmin.js`: Seeds `Anonymous_Admin` from `SUPER_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`.
 
-### Phase 7 — Hardening & Docs (Finalizing & Pushing to `main`)
+### Phase 7 — Hardening & Docs
 - `docs/DEPLOY.md`: Production deployment guide (Node 20, PostgreSQL 14+, Nginx reverse proxy with WebSocket upgrade, HTTPS, backups, Redis scaling path).
 - `docs/openapi.yaml`: Full OpenAPI 3.0.3 specification matching `docs/API_CONTRACT.md`.
 - `scripts/loadSanity.js`: Message-sending burst load sanity runner (`npm run load:sanity`) verifying 5-burst limit + 25 rate-limited requests at sub-5ms latencies.
-- `docs/SECURITY_PRIVACY_CHECKLIST.md`: Verified and ticked all backend items (noting client-side items for web/mobile kits).
-- `README.md`: Quick-start instructions updated and verified.
-
-## Verification Status
-- Lint & Style: `npm run lint` and `npm run format:check` clean (0 errors, 0 warnings).
-- Unit & Contract Tests: 13 test suites, 56 tests passed (`npm test`).
-- Load Sanity: `npm run load:sanity` passed (30 requests: 5 created, 25 rate-limited, p50 1.01ms, p95 4.23ms).
-- Privacy Audit: Zero forbidden `console.log` calls in `src/` and `scripts/`; all PII redacted in `logger.js`.
+- `docs/SECURITY_PRIVACY_CHECKLIST.md` and updated `README.md`.

@@ -411,3 +411,4 @@ paths:
       summary: List currently online users
       responses:
         '200': { description: Online admin user list }
+
