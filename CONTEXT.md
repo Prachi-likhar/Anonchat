@@ -7,7 +7,7 @@
 - **Web (`anonchat-web-kit/anonchat-web-kit/`):** React 18 + TypeScript + Vite + Tailwind CSS frontend application (Phases 0–1 completed and tested).
 - **Mobile (`anonchat-mobile-app-kit/anonchat-mobile-app-kit/`):** React Native (Expo) + TypeScript + NativeWind starter kit (ready for implementation against the backend API contract).
 
-## Web Frontend Completed Work (Phases 0–2)
+## Web Frontend Completed Work (Phases 0–3)
 
 ### Phase 0 & Phase 1 — Scaffold & Foundation
 - Initialized React 18 + TypeScript (strict) + Vite 5 + Tailwind CSS 3.4 with path aliases (`@/*`).
@@ -34,6 +34,15 @@
 - Enhanced `Landing` page (`/`): animated hero, how-it-works 3-step guide, live pseudonym preview, and community limitation transparency note.
 - Code-splitting with Rollup manual chunks keeping all production bundles under 260 kB.
 - Verification passed: `npm run typecheck` clean, `npm run lint` clean, `npm run format:check` clean, `npm run build` passes, `npm test` (32/32 tests passed across 6 test suites).
+
+### Phase 3 — Discover, Dashboard, Profile & Settings
+- Implemented `useDebounce`, `useMembers` (`useInfiniteQuery` with search and filters), and `useConversations` hooks.
+- Implemented `MemberCard` (avatar, presence, pseudonym, gender badge, "Start Chat"), `MemberFilters` (search input, clear button, filter chips), and `AvatarColorPicker` (12 preset color swatches).
+- Implemented `Discover` page (`/app/discover`): filter chips (`All`, `Online`, `Male`, `Female`), URL query sync, debounced search, responsive grid, empty/error/skeleton states, and start conversation handling.
+- Implemented `Dashboard` page (`/app`): anonymous identity card with copy button, live metrics cards, "Continue Chatting" with unread badges, "Meet Someone New" member suggestions, and safety tips.
+- Implemented `Profile` page (`/app/profile`): permanent pseudonym display, 12-swatch avatar color picker, editable private full name and gender, masked email, change password form, and Danger Zone delete account modal.
+- Implemented `Settings` page (`/app/settings`): theme switcher, notification sound and browser notification toggles, blocked users list with unblock button, and logout actions.
+- Verification passed: 36/36 tests passed in Vitest, `tsc --noEmit` clean, `eslint` clean, and production bundle built successfully.
 
 ## Backend Completed Work (Phases 0–7)
 
