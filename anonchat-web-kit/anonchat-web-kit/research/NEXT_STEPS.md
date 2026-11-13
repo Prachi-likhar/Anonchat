@@ -1,32 +1,35 @@
 # Next Steps
 
-## Completed: Phase 0 & Phase 1 — Web Scaffold & Foundation
-- [x] Project scaffold with Vite + React 18 + TypeScript + Tailwind CSS
-- [x] Design tokens configured (`bg`, `surface`, `border`, `text`, `muted`, `primary`, `accent-gradient`, `online`, `gender`)
-- [x] API client (`src/api/client.ts`) with access token injection and single in-flight 401 refresh queue
-- [x] API endpoints (`auth.ts`, `me.ts`, `members.ts`, `conversations.ts`, `blocks.ts`, `reports.ts`, `admin.ts`)
-- [x] Types 1:1 with contract (`src/types/api.ts`)
-- [x] Stores: `themeStore.ts` (persisted), `authStore.ts` (in-memory access token), `toastStore.ts`
-- [x] UI primitives: `Button`, `Input`, `Select`, `SegmentedControl`, `Card`, `Avatar`, `Badge`, `GenderBadge`, `Modal`, `ConfirmDialog`, `Toast`, `Skeleton`, `EmptyState`, `Spinner`, `ThemeToggle`
-- [x] Layouts & Guards: `PublicLayout`, `AppLayout`, `AdminLayout`, `ProtectedRoute`, `AdminRoute`, `PublicOnlyRoute`, `NotFound`
-- [x] Storybook-like `/dev/ui` design system showcase
-- [x] 23 Unit, component, and privacy tests passing in Vitest
+## Completed: Phase 2 — Auth Pages & Session Bootstrap
+- [x] PasswordStrength indicator component and complexity calculation
+- [x] Register page (`/register`) with client validation, private name note, rules checkbox, and redirect to verify
+- [x] VerifyEmail page (`/verify-email`) with 6-box OTP input, auto-advance, paste support, 60s cooldown resend timer, and Welcome Modal revealing `Anonymous_xxxx` identity
+- [x] Login page (`/login`) with error handling: `EMAIL_NOT_VERIFIED` redirect, `ACCOUNT_SUSPENDED` modal, and `ACCOUNT_BANNED` banner
+- [x] ForgotPassword and ResetPassword two-step recovery flow
+- [x] Enhanced Landing page (`/`) with 3-step guide, persona demo, and honesty disclosure
+- [x] 32 passing unit, component, and flow tests in Vitest
 
-## Next Phase: Phase 2 — Auth Pages & Session Bootstrap
-1. Build `Register` page (`/register`):
-   - Full name (private indicator), Email, Password with strength indicator, Confirm password.
-   - Gender segmented control (Male / Female).
-   - "I agree to the community rules" checkbox.
-   - Zod client-side validation mirroring backend.
-   - Handle 400 validation errors, 429 rate limit, 503 service unavailable.
-2. Build `VerifyEmail` page (`/verify-email`):
-   - 6-box OTP input with auto-advance, paste handling, numeric keyboard.
-   - Resend OTP button with 60-second cooldown timer.
-   - Welcome modal showing assigned `Anonymous_xxxx` identity and community privacy guidelines upon successful verification.
-3. Build `Login` page (`/login`):
-   - Email, password (show/hide), "Forgot password?" link.
-   - Error handling: `EMAIL_NOT_VERIFIED` -> redirect to `/verify-email`, `ACCOUNT_SUSPENDED` -> modal/card with expiry date and reason, `ACCOUNT_BANNED` -> permanent ban notice, 429 lockout countdown.
-   - Redirect to originally requested route on success.
-4. Build `ForgotPassword` and `ResetPassword` pages:
-   - Request reset OTP -> enter OTP + new password.
-5. End-to-end test against local backend auth endpoints.
+## Next Phase: Phase 3 — Discover, Dashboard, Profile & Settings
+1. **Discover (`/app/discover`):**
+   - Search by anon username (debounced 300 ms).
+   - Filter chips: All · Male · Female · Online (`?filter=`).
+   - Responsive grid of `MemberCard`s: avatar with online dot, `Anonymous_xxxx`, gender badge, "Online/Offline" status.
+   - "Start chat" action button -> `POST /conversations` -> navigate to thread; handle `USER_BLOCKED` toast.
+   - Cursor-based infinite scroll / "Load more".
+   - Loading skeleton, empty state ("No members match"), error state with retry.
+2. **Dashboard (`/app`):**
+   - Header greeting with anonymous identity chip.
+   - Quick stats cards: unread messages, active conversations, online members.
+   - "Continue chatting": top 3 recent conversations.
+   - "Meet someone new": 6 online/random members with instant start chat.
+   - Safety tips banner.
+3. **Profile (`/app/profile`):**
+   - Anonymous identity card (permanent username with copy button).
+   - 12-swatch avatar color picker.
+   - Editable full name (private) and gender; masked email (`a***@gmail.com`).
+   - Change password section.
+   - Danger zone: delete account with password confirmation dialog.
+4. **Settings (`/app/settings`):**
+   - Theme toggle (System / Light / Dark).
+   - Blocked users list with unblock action.
+   - Logout and security links.

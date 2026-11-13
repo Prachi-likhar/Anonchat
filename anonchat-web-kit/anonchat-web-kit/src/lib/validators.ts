@@ -115,3 +115,32 @@ export const reportSchema = z.object({
 });
 
 export type ReportFormValues = z.infer<typeof reportSchema>;
+
+export function calculatePasswordStrength(password: string = ''): {
+  score: number;
+  label: string;
+  color: string;
+} {
+  if (!password) {
+    return { score: 0, label: '', color: 'bg-muted/20' };
+  }
+
+  let score = 0;
+  if (password.length >= 8) score += 1;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 1;
+  if (/[0-9]/.test(password)) score += 1;
+  if (/[^A-Za-z0-9]/.test(password) || password.length >= 12) score += 1;
+
+  switch (score) {
+    case 1:
+      return { score: 1, label: 'Weak', color: 'bg-danger' };
+    case 2:
+      return { score: 2, label: 'Fair', color: 'bg-amber-500' };
+    case 3:
+      return { score: 3, label: 'Good', color: 'bg-sky-500' };
+    case 4:
+      return { score: 4, label: 'Strong', color: 'bg-online' };
+    default:
+      return { score: 0, label: '', color: 'bg-muted/20' };
+  }
+}

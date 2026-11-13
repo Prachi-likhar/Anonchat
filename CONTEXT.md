@@ -7,7 +7,7 @@
 - **Web (`anonchat-web-kit/anonchat-web-kit/`):** React 18 + TypeScript + Vite + Tailwind CSS frontend application (Phases 0–1 completed and tested).
 - **Mobile (`anonchat-mobile-app-kit/anonchat-mobile-app-kit/`):** React Native (Expo) + TypeScript + NativeWind starter kit (ready for implementation against the backend API contract).
 
-## Web Frontend Completed Work (Phases 0 & 1)
+## Web Frontend Completed Work (Phases 0–2)
 
 ### Phase 0 & Phase 1 — Scaffold & Foundation
 - Initialized React 18 + TypeScript (strict) + Vite 5 + Tailwind CSS 3.4 with path aliases (`@/*`).
@@ -24,8 +24,16 @@
 - Implemented UI primitives in `src/components/ui/`: `Button`, `Input`, `Select`, `SegmentedControl`, `Card`, `Avatar`, `Badge`, `GenderBadge`, `Modal`, `ConfirmDialog`, `Toast`, `ToastContainer`, `Skeleton`, `EmptyState`, `Spinner`, `ThemeToggle`.
 - Implemented layouts and route guards: `PublicLayout`, `AppLayout` (with desktop left rail, mobile bottom bar, header), `AdminLayout`, `ProtectedRoute`, `AdminRoute`, `PublicOnlyRoute`, `NotFound`.
 - Implemented `/dev/ui` design system gallery showcasing all component variants, themes, and states.
-- Implemented test suites in `src/__tests__/`: 5 test files, 23 tests covering validators, formatting, error mapping, UI primitives, and privacy assertions (zero leakage of private identifiers).
-- Verification passed: `npm run typecheck` clean, `npm run lint` clean, `npm run format:check` clean, `npm run build` generates production bundle, `npm test` (23/23 tests passed).
+
+### Phase 2 — Auth Pages & Session Bootstrap
+- Implemented `PasswordStrength` indicator component with complexity scoring.
+- Implemented `Register` page (`/register`): full name with privacy indicator, email, password strength meter, confirm password, gender segmented control, and community rules agreement.
+- Implemented `VerifyEmail` page (`/verify-email`): 6-box OTP input with auto-advance, backspace navigation, paste support, 60s cooldown resend timer, error shake, and celebration Welcome Modal revealing assigned `Anonymous_xxxx` pseudonym and privacy charter.
+- Implemented `Login` page (`/login`): email/password authentication, automatic redirection on `EMAIL_NOT_VERIFIED`, modal for `ACCOUNT_SUSPENDED` (displaying reason and expiration timestamp), banner for `ACCOUNT_BANNED`, and redirect-back support.
+- Implemented `ForgotPassword` (`/forgot-password`) and `ResetPassword` (`/reset-password`) two-step password recovery.
+- Enhanced `Landing` page (`/`): animated hero, how-it-works 3-step guide, live pseudonym preview, and community limitation transparency note.
+- Code-splitting with Rollup manual chunks keeping all production bundles under 260 kB.
+- Verification passed: `npm run typecheck` clean, `npm run lint` clean, `npm run format:check` clean, `npm run build` passes, `npm test` (32/32 tests passed across 6 test suites).
 
 ## Backend Completed Work (Phases 0–7)
 
