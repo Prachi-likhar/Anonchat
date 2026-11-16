@@ -1,16 +1,30 @@
 # Next Steps
 
-## Completed: Phase 0 (Scaffold) & Phase 1 (Foundation)
-- Expo TS scaffold, NativeWind v4 configuration, theme tokens (dark/light).
-- Secure token storage, Axios client with `X-Client: mobile`, Zustand auth store with 401 refresh rotation.
-- Route navigation structure & guards (`(auth)`, `(app)`, `(admin)`).
-- Complete set of UI primitives (`Button`, `TextField`, `Card`, `Avatar`, `Badge`, `SegmentedControl`, `FilterChips`, `OtpInput`, `Skeleton`, `EmptyState`, `ConfirmDialog`, `Toast`, `OfflineBanner`).
-- 26/26 tests passing, TypeScript clean, ESLint clean.
+## Completed:
+- **Phase 0 & 1:** Expo TS scaffold, NativeWind v4, design tokens, Axios `X-Client: mobile` client, secureStore refresh token rotation, in-memory auth store, navigation layouts & guards, base UI primitives.
+- **Phase 2:** Complete Mobile Auth flows: Welcome, Register (strength meter, privacy helper, gender selector, rules check), Verify Email (6-box OTP, 60s cooldown, pseudonym reveal modal), Login (suspension modal, ban modal, 429 countdown, unverified redirect), Forgot & Reset password.
+- 29/29 tests passing across 5 test suites, `tsc` clean, `eslint` clean.
 
-## Up Next: Phase 2 — Mobile Authentication Flow
-1. **Welcome Screen Polish:** connect to `register` and `login`.
-2. **Register Screen:** Full Name (private helper note), Email, Password + real-time strength meter, Confirm Password, Gender SegmentedControl (Male/Female), Community Rules Agreement checkbox.
-3. **Verify Email Screen:** 6-box OTP input with auto-paste, 60s resend timer countdown, assigned pseudonym reveal modal upon successful verification.
-4. **Login Screen:** Email, Password, remember state, handling 403 `EMAIL_NOT_VERIFIED` (redirects to OTP), 403 `ACCOUNT_SUSPENDED` (displays modal with suspension end date and reason), 403 `ACCOUNT_BANNED` (permanent ban message), 429 rate limit countdown.
-5. **Forgot / Reset Password Flow:** Step 1 (Request OTP by email) -> Step 2 (Submit 6-digit OTP + new password with strength check).
-6. **Integration & Automated Testing:** Unit/integration tests for authentication screens and edge cases.
+## Up Next: Phase 3 — Discover, Home Dashboard, Profile & Settings
+1. **Home Dashboard (`app/(app)/index.tsx`):**
+   - Identity banner chip showing `Anonymous_xxxx` and avatar swatch.
+   - Unread summary metrics.
+   - Continue chatting quick list (top 3 recent active conversations).
+   - Suggested online members carousel/list.
+   - Community safety tips.
+2. **Discover Screen (`app/(app)/discover.tsx`):**
+   - Debounced search bar (matching `Anonymous_xxxx` handles).
+   - Filter chips: `All`, `Male`, `Female`, `Online`.
+   - Member card list with avatar, online indicator dot, anon username, gender badge, "Start Chat" button.
+   - Pull-to-refresh & pagination cursor support.
+3. **Profile Screen (`app/(app)/profile.tsx`):**
+   - Permanent anonymous handle copy chip.
+   - 12-color avatar palette picker with live `PATCH /me { avatarColor }`.
+   - Masked email (`a******z@domain.com`).
+   - Change password sheet / modal.
+   - Delete account dialog (requires password confirmation).
+   - Admin badge & portal entry (visible only when `user.role === 'admin'`).
+4. **Settings Screen (`app/(app)/settings.tsx`) & Blocked List (`app/(app)/blocked.tsx`):**
+   - Theme toggle (System / Light / Dark) synced with backend and AsyncStorage.
+   - Blocked members list with "Unblock" action calling `DELETE /blocks/:memberId`.
+   - App version and privacy rules modal.
