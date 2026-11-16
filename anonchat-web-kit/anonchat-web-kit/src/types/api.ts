@@ -80,6 +80,7 @@ export interface Message {
   createdAt: string;
   readAt: string | null;
   clientMsgId?: string;
+  senderId?: string;
 }
 
 /**

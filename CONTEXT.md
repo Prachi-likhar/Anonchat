@@ -7,7 +7,7 @@
 - **Web (`anonchat-web-kit/anonchat-web-kit/`):** React 18 + TypeScript + Vite + Tailwind CSS frontend application (Phases 0–1 completed and tested).
 - **Mobile (`anonchat-mobile-app-kit/anonchat-mobile-app-kit/`):** React Native (Expo) + TypeScript + NativeWind starter kit (ready for implementation against the backend API contract).
 
-## Web Frontend Completed Work (Phases 0–5)
+## Web Frontend Completed Work (Phases 0–6)
 
 ### Phase 0 & Phase 1 — Scaffold & Foundation
 - Initialized React 18 + TypeScript (strict) + Vite 5 + Tailwind CSS 3.4 with path aliases (`@/*`).
@@ -58,6 +58,13 @@
 - Implemented `src/components/ui/OfflineBanner.tsx`: global offline/reconnecting alert banner.
 - Integrated unread count badges on desktop navigation sidebar and mobile bottom tab bar in `AppLayout.tsx`.
 - Verification passed: 57/57 tests passed across 9 Vitest suites, `tsc --noEmit` clean, `eslint` clean, and production bundle built successfully.
+
+### Phase 6 — Admin Portal & Moderation
+- Implemented `AdminDashboard.tsx`: KPI cards, online/active chat stats, gender demographic progress bar, open reports preview, and moderation activity summary.
+- Implemented `AdminUsers.tsx`: User directory with search, gender & status filters, user detail modal, duration-preset suspension dialog, permanent ban dialog, and reinstate action.
+- Implemented `AdminReports.tsx`: Triage tabs (Open, In Review, Resolved, Dismissed), report detail drawer with attached 30-message conversation snapshot history viewer, and resolution actions (dismiss, resolve, suspend, ban).
+- Implemented `AdminActivity.tsx`: Immutable audit log stream with action filters (suspensions, bans, reinstatements, report decisions).
+- Verification passed: 63/63 tests passed across 10 Vitest suites, `tsc --noEmit` clean, `eslint` clean, and production bundle built successfully.
 
 ## Backend Completed Work (Phases 0–7)
 

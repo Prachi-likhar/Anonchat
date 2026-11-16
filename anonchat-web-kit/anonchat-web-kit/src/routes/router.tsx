@@ -20,7 +20,10 @@ import { Chat } from '@/pages/Chat';
 import { Profile } from '@/pages/Profile';
 import { Settings } from '@/pages/Settings';
 
-import { AdminDashboard, UsersPage, ReportsPage, ActivityPage } from '@/pages/admin/AdminDashboard';
+import { AdminDashboard } from '@/pages/admin/AdminDashboard';
+import { AdminUsers } from '@/pages/admin/AdminUsers';
+import { AdminReports } from '@/pages/admin/AdminReports';
+import { AdminActivity } from '@/pages/admin/AdminActivity';
 
 import { DevUI } from '@/pages/DevUI';
 import { NotFound } from '@/pages/NotFound';
@@ -81,9 +84,9 @@ export const router = createBrowserRouter([
         element: <AdminLayout />,
         children: [
           { index: true, element: <AdminDashboard /> },
-          { path: 'users', element: <UsersPage /> },
-          { path: 'reports', element: <ReportsPage /> },
-          { path: 'activity', element: <ActivityPage /> },
+          { path: 'users', element: <AdminUsers /> },
+          { path: 'reports', element: <AdminReports /> },
+          { path: 'activity', element: <AdminActivity /> },
         ],
       },
     ],

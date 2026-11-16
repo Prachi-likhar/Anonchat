@@ -1,46 +1,38 @@
 # Progress Log
 Newest entry at the top. Every prompt gets a PLANNED entry before coding and DONE lines as work completes.
 
-## PLANNED — 2026-11-16 — Phase 6: Admin Portal, Metrics & Moderation
-- **Prompt (my words):** Implement full Phase 6 of docs/BUILD_PLAN.md: admin dashboard with KPI stat cards, signups & gender breakdown charts, recent reports & activity feed; admin users table with search, gender/status filters, pagination, user detail drawer, and moderation actions (Suspend with expiration date, Ban, Reinstate); reports management with tabs (Open, Reviewing, Resolved, Dismissed), report detail view with snapshot conversation history viewer and resolution actions; audit activity stream; and strict route/API permission guards.
+## PLANNED — 2026-11-16 — Phase 7: Quality, Responsive Audit, A11y & Deployment Documentation
+- **Prompt (my words):** Implement full Phase 7 of docs/BUILD_PLAN.md: complete responsive audit across mobile (360px), tablet (768px), and desktop (1280px); accessibility pass (ARIA landmarks, labels, keyboard traps, focus rings); production deployment guide (`docs/DEPLOY.md`) covering Vercel, Netlify, Nginx, SPA routing fallbacks, environment variables, and backend CORS configuration; and full end-to-end regression validation.
 - **Already done:**
-  - Phases 0–5 completed, tested, and pushed (`5b8474f`).
-  - Auth, discovery, profile, settings, chat, real-time socket, and notifications fully operational.
-  - Basic `AdminLayout` and placeholder routes in place.
+  - Phases 0–6 completed, tested, and passing all static checks and builds.
+  - Complete feature implementation: Auth, Profile, Discovery, Chat, Real-Time Sockets, Notifications, and Admin Portal.
 - **To do now:**
-  1. Verify admin API modules in `src/api/admin.ts`:
-     - `getStats()`, `listUsers(params)`, `getUser(id)`, `suspendUser(id, payload)`, `banUser(id, payload)`, `reinstateUser(id)`.
-     - `listReports(params)`, `getReport(id)`, `resolveReport(id, payload)`, `dismissReport(id, payload)`.
-     - `listActivity(params)`.
-  2. Implement Admin Dashboard page (`src/pages/admin/AdminDashboard.tsx`):
-     - Metric cards: total users, male/female count, online now, new today/7d, suspended/banned, open reports, messages today.
-     - Interactive SVG charts: 7-day signups trend, gender distribution donut.
-     - Quick tables: latest open reports, recent moderation audit log.
-  3. Implement Admin Users page (`src/pages/admin/AdminUsers.tsx`):
-     - Search by anon username or email.
-     - Filters by status (`active`, `suspended`, `banned`) and gender (`male`, `female`).
-     - Table columns: Pseudonym, Email, Gender, Status badge, Online presence, Reports count, Joined date, Actions.
-     - User detail drawer: user info, reports against them, audit history.
-     - Moderation modal: Suspend (preset durations: 24h, 7d, 30d, custom date + reason), Ban (reason), Reinstate.
-  4. Implement Admin Reports page (`src/pages/admin/AdminReports.tsx`):
-     - Tab bar: Open, Reviewing, Resolved, Dismissed.
-     - Report detail view: reporter & reported anon names, reason, details, and conversation snapshot viewer with anon message bubbles.
-     - Moderation action controls: Dismiss, Resolve with note, Suspend user, Ban user.
-  5. Implement Admin Activity page (`src/pages/admin/AdminActivity.tsx`):
-     - Audit log stream with action filters (user_suspended, user_banned, user_reinstated, report_resolved, report_dismissed) and IP/timestamp display.
-  6. Add unit and component tests in `src/__tests__/adminPages.test.tsx`:
-     - Non-admin redirection / access restriction.
-     - Stats card and charts rendering.
-     - User table filtering, suspension, ban, and reinstate actions.
-     - Report resolution with snapshot viewer.
-  7. Run error-review: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
-  8. Direct commit and push to `origin/main` with author `Prachi-likhar <prachilikhar48@gmail.com>`.
+  1. Author comprehensive deployment documentation in `docs/DEPLOY.md`:
+     - Environment configuration (`VITE_API_URL`, `VITE_SOCKET_URL`).
+     - Static hosting guides: Vercel (`vercel.json`), Netlify (`_redirects` / `netlify.toml`), and Nginx (`nginx.conf` with SPA rewrite & WebSocket proxy).
+     - CORS whitelist instructions for backend `CORS_ORIGIN` matching production frontend domains.
+     - Production build optimization and caching strategies.
+  2. Implement SPA redirect configurations:
+     - `public/_redirects` for Netlify (`/* /index.html 200`).
+     - `vercel.json` for Vercel SPA routing (`"routes": [{ "handle": "filesystem" }, { "src": "/.*", "dest": "/index.html" }]`).
+  3. Quality & Responsive Audit:
+     - Verify touch target sizes (≥ 44px) on mobile navigation, dialog triggers, and chat composer.
+     - Verify HTML semantic landmarks (`main`, `nav`, `header`, `aside`) and ARIA roles across all layouts.
+  4. Run full error-review: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
+  5. Direct commit and push to `origin/main` with author `Prachi-likhar <prachilikhar48@gmail.com>`.
 - **Not in scope / later:**
-  - Phase 7: Responsive audit, a11y pass, production deployment guide.
-- **Risks & ambiguities:**
-  - Charting: using native responsive SVG charts ensures zero heavy bundle overhead and 100% theme consistency.
+  - None; Phase 7 is the final phase of the Web Frontend build plan!
 - **Skills needed:**
   - `prompt-review` (active), `error-review`.
+
+## DONE — 2026-11-16 — Phase 6: Admin Portal, Metrics & Moderation
+- Implemented `AdminDashboard.tsx`: Live KPI summary cards (total users, online now, active chats, open reports, message volume, suspended/banned count), gender demographic distribution progress bar with percentage calculations, and preview tables for open reports and recent moderation activity.
+- Implemented `AdminUsers.tsx`: Comprehensive member directory with debounced search, status and gender filter dropdowns, member table with report counters and joined timestamps, detailed user inspection modal with reports history, and moderation dialogs (suspend with 24h/7d/30d/90d duration presets + justification reason, permanent ban dialog with warning banner, and reinstate account dialog).
+- Implemented `AdminReports.tsx`: Tabbed report queue (Open, In Review, Resolved, Dismissed), report detail drawer with attached 30-message conversation snapshot history viewer, and resolution actions (dismiss, resolve with audit note, and 1-click suspend/ban).
+- Implemented `AdminActivity.tsx`: Immutable audit log stream with action filters (suspensions, bans, reinstatements, report decisions) and IP address/timestamp display.
+- Enhanced `router.tsx`: Routed `/admin`, `/admin/users`, `/admin/reports`, and `/admin/activity` to their dedicated modular page components protected by `AdminRoute`.
+- Added unit and component test suite in `src/__tests__/adminPages.test.tsx` (all 6 tests passing, including access restriction verification, metrics rendering, user moderation, and report resolution).
+- All 10 test suites passing (63 tests total), `tsc --noEmit` clean, `eslint` clean, and production bundle built successfully.
 
 ## DONE — 2026-11-16 — Phase 5: Real-Time Polish & Notifications
 - Implemented `src/lib/sound.ts`: Web Audio API oscillator synthesis generating custom chime tones (587.33Hz D5 -> 880Hz A5), zero external MP3 dependencies, with localStorage persistence.

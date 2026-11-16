@@ -1,18 +1,5 @@
 # Next Steps
 
-## Completed: Phase 4 — Chat (Conversations & Messages)
-- [x] Socket.IO singleton client (`src/lib/socket.ts`) with in-memory auth and `useSocket` lifecycle hook
-- [x] Chat state hooks: `useChatThread` with infinite message history, optimistic send, mark-as-read, and rate limit countdown
-- [x] Two-pane responsive Chat page (`/app/chat/:id?`) with mobile back-navigation
-- [x] ConversationList with instant search filter, unread badges, typing animation preview, and empty states
-- [x] ChatHeader with partner presence, typing indicator, and dropdown actions (End, Delete, Report, Block)
-- [x] MessageList with date separators, auto-scroll, earlier message pagination, and friendly greeting prompt
-- [x] MessageBubble with styled bubbles, timestamps, read ticks (`✓`/`✓✓`), and strict privacy guarantee
-- [x] ChatComposer with auto-expanding textarea, 2000-char counter, Enter-to-send, and ended banner
-- [x] ReportModal with reason radio group, details textarea, and message snapshot notice
-- [x] BlockConfirmDialog, EndChatDialog, and DeleteChatDialog
-- [x] 50 passing unit and component tests across 8 test suites
-
 ## Completed: Phase 5 — Real-Time Polish & Notifications
 - [x] Web Audio API oscillator synthesis chime (`src/lib/sound.ts`) with localStorage persistence and preview button
 - [x] HTML5 background notifications (`src/lib/notifications.ts`) with strict privacy (zero message body disclosure)
@@ -23,18 +10,23 @@
 - [x] Enhanced Settings with interactive "Test Chime" and permission handling
 - [x] 57 passing tests across 9 Vitest suites
 
-## Next Phase: Phase 6 — Admin Portal & Moderation
-1. **Admin Dashboard (`/admin`):**
-   - Live KPI stat cards (total users, active, online, reports, messages).
-   - Signups trend chart (7d) & gender distribution donut.
-   - Quick tables for open reports and recent audit logs.
-2. **Admin Users (`/admin/users`):**
-   - User directory table with search, status & gender filters, pagination.
-   - User detail drawer with reports history and audit trail.
-   - Moderation actions: Suspend (duration presets + reason), Ban, Reinstate.
-3. **Admin Reports (`/admin/reports`):**
-   - Tabs: Open, Reviewing, Resolved, Dismissed.
-   - Detail view with conversation snapshot viewer.
-   - Moderation actions: Dismiss, Resolve with note, Suspend, Ban.
-4. **Admin Activity (`/admin/activity`):**
-   - Audit stream with filters.
+## Completed: Phase 6 — Admin Portal & Moderation
+- [x] Admin Dashboard (`/admin`): Live KPI cards, gender distribution bar, open reports and activity log previews
+- [x] Admin Users (`/admin/users`): Member directory with search, gender and status filters, user detail modal with reports history, suspend modal (24h/7d/30d/90d + reason), permanent ban modal, and reinstate dialog
+- [x] Admin Reports (`/admin/reports`): Tabs (Open, Reviewing, Resolved, Dismissed), detail view with 30-message conversation snapshot history viewer, and resolution actions (dismiss, resolve with note, suspend, ban)
+- [x] Admin Activity (`/admin/activity`): Immutable audit log stream with action filters (suspensions, bans, reinstatements, decisions)
+- [x] Strict `AdminRoute` protection (redirects non-admin users with Access Denied screen)
+- [x] 63 passing tests across 10 Vitest suites
+
+## Next Phase: Phase 7 — Quality, A11y & Deployment
+1. **Responsive & A11y Audit:**
+   - Audit mobile touch targets (≥44px), ARIA landmarks, keyboard navigation.
+2. **Production Deployment Documentation (`docs/DEPLOY.md`):**
+   - Vercel (`vercel.json` SPA routing).
+   - Netlify (`public/_redirects`).
+   - Nginx (`nginx.conf` with SPA fallback and WebSocket reverse proxy).
+   - Backend `CORS_ORIGIN` setup.
+3. **SPA Fallback Configs:**
+   - Add `public/_redirects` and `vercel.json`.
+4. **Final Production Build & Sanity Checks:**
+   - Verify `tsc --noEmit`, `eslint`, `vitest`, and production `vite build`.
