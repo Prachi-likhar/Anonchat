@@ -21,7 +21,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0E0F1A"
       },
-      "package": "com.anonchat.app"
+      "package": "com.anonchat.app",
+      "permissions": []
     },
     "web": {
       "bundler": "metro",

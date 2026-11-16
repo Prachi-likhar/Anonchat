@@ -1,24 +1,25 @@
 # Progress Log
 Newest entry at the top. Every prompt gets a PLANNED entry before coding and DONE lines as work completes.
 
+## DONE — 2026-11-16 — Mobile Phase 8: Release Prep & Deployment Documentation
+- Configured `app.json` with explicit zero-permission security policy (`permissions: []`), bundle identifier `com.anonchat.app`, and scheme `anonchat`.
+- Created `eas.json` with multi-tier EAS build profiles (`development`, `preview` APK, and `production` AAB/IPA).
+- Created `docs/DEPLOY.md` detailing architecture invariants, environment routing (Android emulator, iOS simulator, LAN IP, production HTTPS), EAS build commands, App Store / Google Play privacy declarations, and pre-release checklist.
+
+## DONE — 2026-11-16 — Mobile Phase 5, 6 & 7: Lifecycle, Compact Admin & Polish
+- Implemented `src/api/admin.ts` full contract conforming methods (`getAdminStats`, `getAdminUsers`, `getAdminUser`, `suspendUser`, `banUser`, `reinstateUser`, `getAdminReports`, `getAdminReport`, `resolveReport`).
+- Implemented AppState background/active lifecycle listener in `app/_layout.tsx` (disconnects socket in background, reconnects and invalidates queries on foreground, handles `force-logout` events).
+- Built compact admin mobile screens:
+  - `app/(admin)/index.tsx`: overview metrics, KPI cards, gender balance bar, moderation queue navigation.
+  - `app/(admin)/users.tsx`: member directory with search and status chips (`all`, `active`, `suspended`, `banned`).
+  - `app/(admin)/user/[id].tsx`: user detail view with suspension modal (24h/7d/30d/90d presets + reason), permanent ban modal, and reinstate action.
+  - `app/(admin)/reports.tsx`: triage queue with status filter chips (`open`, `reviewing`, `resolved`, `dismissed`).
+  - `app/(admin)/report/[id].tsx`: forensic 30-message conversation snapshot history viewer, reporter statement, and resolution action controls (dismiss, suspend, ban with resolution note).
+- Added comprehensive unit tests in `src/__tests__/adminApi.test.ts`.
+- Verified static analysis and tests: `npm run typecheck` (0 errors), `npm run lint` (0 errors, 0 warnings), `npm test` (53/53 tests passing across 8 test suites).
+
 ## DONE — 2026-11-16 — Mobile Phase 4: Chat System & Realtime Messaging
-- Implemented `src/api/conversations.ts` with complete contract coverage: `getMessages` (cursor pagination), `sendMessage` (with `clientMsgId`), `markConversationRead`, `endConversation`, `deleteConversation`, and `reportUser` (capturing 30-message snapshot).
-- Implemented `src/socket/socketClient.ts` connecting to `/socket.io` with in-memory access token, reconnect handling on token rotation, typing event throttling, and listeners for `message:new`, `message:read`, `typing`, `presence`, `conversation:ended`, `force-logout`.
-- Implemented Conversation List Screen (`app/(app)/chats.tsx`):
-  - Real-time updates on incoming messages and read receipts via socket subscriptions.
-  - Active/ended indicators, typing preview snippet ("typing..."), online presence dots.
-  - Delete conversation action with confirmation dialog calling `DELETE /conversations/:id`.
-  - Empty state with direct navigation to Discover.
-- Implemented Active Chat Thread Screen (`app/(app)/chat/[id].tsx`):
-  - Inverted FlatList rendering with automatic read mark on focus.
-  - Optimistic sending with client temporary ID and instant deduplication.
-  - Status indicators: read ticks (`✓` sent, `✓✓` read), optimistic spinner.
-  - Auto-growing composer with 2000 character limit counter and typing broadcast.
-  - Action menu: End conversation (`POST /conversations/:id/end`), Block member (`POST /blocks`), Delete conversation (`DELETE /conversations/:id`).
-  - Report Member modal with 30-message forensic snapshot notice and categories (`spam`, `harassment`, `inappropriate`, `impersonation`, `other`).
-  - Confidentiality privacy banner and long-press message copy with haptic feedback.
-- Added comprehensive unit tests (`src/__tests__/conversationsApi.test.ts`), bringing test coverage to 44/44 passing tests across 7 test suites.
-- `tsc --noEmit` clean (0 errors), `npm run lint` clean (0 errors, 0 warnings).
+- Pushed to `origin/main` (`bb4681f`).
 
 ## DONE — 2026-11-16 — Mobile Phase 3: Discover, Home Dashboard, Profile & Settings
 - Pushed to `origin/main` (`d7e1eab`).
