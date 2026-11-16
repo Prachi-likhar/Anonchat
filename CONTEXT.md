@@ -7,7 +7,7 @@
 - **Web (`anonchat-web-kit/anonchat-web-kit/`):** React 18 + TypeScript + Vite + Tailwind CSS frontend application (Phases 0–1 completed and tested).
 - **Mobile (`anonchat-mobile-app-kit/anonchat-mobile-app-kit/`):** React Native (Expo) + TypeScript + NativeWind starter kit (ready for implementation against the backend API contract).
 
-## Web Frontend Completed Work (Phases 0–4)
+## Web Frontend Completed Work (Phases 0–5)
 
 ### Phase 0 & Phase 1 — Scaffold & Foundation
 - Initialized React 18 + TypeScript (strict) + Vite 5 + Tailwind CSS 3.4 with path aliases (`@/*`).
@@ -50,6 +50,14 @@
 - Implemented `src/components/chat/`: `ConversationItem`, `ConversationList`, `ChatHeader`, `MessageBubble`, `MessageList`, `ChatComposer`, `ReportModal`, and `ChatDialogs` (`BlockConfirmDialog`, `EndChatDialog`, `DeleteChatDialog`).
 - Implemented `Chat` page (`/app/chat/:id?`): responsive two-pane layout, search filtering, message date separators, unread counters, and mobile back navigation.
 - Verification passed: 50/50 tests passed across 8 Vitest suites, `tsc --noEmit` clean, `eslint` clean, and production bundle built successfully.
+
+### Phase 5 — Real-Time Polish & Notifications
+- Implemented `src/lib/sound.ts`: synthesized Web Audio chime for incoming messages, localStorage persistence, and interactive preview button.
+- Implemented `src/lib/notifications.ts`: background HTML5 push notifications with strict privacy (zero message body disclosure, active only when tab is hidden).
+- Implemented `src/hooks/useTitleBadge.ts`: reactive browser tab unread count badge.
+- Implemented `src/components/ui/OfflineBanner.tsx`: global offline/reconnecting alert banner.
+- Integrated unread count badges on desktop navigation sidebar and mobile bottom tab bar in `AppLayout.tsx`.
+- Verification passed: 57/57 tests passed across 9 Vitest suites, `tsc --noEmit` clean, `eslint` clean, and production bundle built successfully.
 
 ## Backend Completed Work (Phases 0–7)
 

@@ -14,12 +14,18 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { authApi } from '@/api/auth';
+import { useConversations } from '@/hooks/useConversations';
+import { useTitleBadge } from '@/hooks/useTitleBadge';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/lib/cn';
 
 export const AppLayout: React.FC = () => {
   const { user, clearAuth } = useAuthStore();
+  const { unreadCount } = useConversations();
+  useTitleBadge(unreadCount);
+
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -84,6 +90,11 @@ export const AppLayout: React.FC = () => {
                 >
                   {item.icon}
                   <span>{item.label}</span>
+                  {item.label === 'Chats' && unreadCount > 0 && (
+                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white shadow-sm">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
                 </NavLink>
               );
             })}
@@ -140,6 +151,9 @@ export const AppLayout: React.FC = () => {
 
       {/* Main Container */}
       <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Global Offline / Reconnection Banner */}
+        <OfflineBanner />
+
         {/* Mobile Header (<lg) */}
         <header className="lg:hidden flex h-14 items-center justify-between border-b border-border bg-surface px-4">
           <div className="flex items-center gap-2">
@@ -172,10 +186,17 @@ export const AppLayout: React.FC = () => {
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-text hover:bg-surface-2"
+                className="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-text hover:bg-surface-2"
               >
-                {item.icon}
-                <span>{item.label}</span>
+                <div className="flex items-center gap-3">
+                  {item.icon}
+                  <span>{item.label}</span>
+                </div>
+                {item.label === 'Chats' && unreadCount > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white shadow-sm">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
               </NavLink>
             ))}
             {isAdmin && (
@@ -217,11 +238,18 @@ export const AppLayout: React.FC = () => {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  'flex flex-col items-center justify-center gap-1 py-1 px-3 text-[11px] font-medium transition-colors',
+                  'flex flex-col items-center justify-center gap-1 py-1 px-3 text-[11px] font-medium transition-colors relative',
                   isActive ? 'text-primary font-semibold' : 'text-muted hover:text-text',
                 )}
               >
-                {item.icon}
+                <div className="relative">
+                  {item.icon}
+                  {item.label === 'Chats' && unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-white shadow-sm">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </div>
                 <span>{item.label}</span>
               </NavLink>
             );

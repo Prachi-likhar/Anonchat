@@ -5,6 +5,8 @@ import { conversationsApi } from '@/api/conversations';
 import { blocksApi } from '@/api/blocks';
 import { reportsApi, type SubmitReportPayload } from '@/api/reports';
 import { getSocket } from '@/lib/socket';
+import { playMessageSound } from '@/lib/sound';
+import { sendBrowserNotification } from '@/lib/notifications';
 import { toast } from '@/store/toastStore';
 import { getErrorMessage } from '@/lib/errors';
 import type { Conversation, PaginatedResponse, UnreadCountResponse, Message } from '@/types/api';
@@ -77,6 +79,15 @@ export function useConversations(limit: number = 20) {
         },
       );
       queryClient.invalidateQueries({ queryKey: ['unread-count'] });
+
+      // Trigger incoming message sound and background notification
+      if (!payload.message.mine) {
+        playMessageSound();
+        sendBrowserNotification(
+          payload.conversation.other.anonUsername,
+          payload.conversation.id,
+        );
+      }
     };
 
     const handleConversationEnded = (payload: { conversationId: string }) => {

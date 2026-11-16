@@ -23,6 +23,12 @@ import { authApi } from '@/api/auth';
 import { blocksApi } from '@/api/blocks';
 import { toast } from '@/store/toastStore';
 import { getErrorMessage } from '@/lib/errors';
+import { testSound, isSoundEnabled, setSoundEnabled as saveSoundPref } from '@/lib/sound';
+import {
+  isNotificationEnabled as checkNotifEnabled,
+  requestNotificationPermission,
+  setNotificationEnabled as saveNotifPref,
+} from '@/lib/notifications';
 
 export const Settings: React.FC = () => {
   const { clearAuth } = useAuthStore();
@@ -30,37 +36,29 @@ export const Settings: React.FC = () => {
   const queryClient = useQueryClient();
 
   // Notification preferences in localStorage
-  const [soundEnabled, setSoundEnabled] = useState(() => {
-    return localStorage.getItem('anonchat_sound') !== 'false';
-  });
-
-  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
-    return localStorage.getItem('anonchat_notifications') === 'true';
-  });
+  const [soundEnabled, setSoundEnabled] = useState(isSoundEnabled);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(checkNotifEnabled);
 
   useEffect(() => {
-    localStorage.setItem('anonchat_sound', String(soundEnabled));
+    saveSoundPref(soundEnabled);
   }, [soundEnabled]);
 
   useEffect(() => {
-    localStorage.setItem('anonchat_notifications', String(notificationsEnabled));
+    saveNotifPref(notificationsEnabled);
   }, [notificationsEnabled]);
 
   const handleToggleNotifications = async () => {
-    if (!notificationsEnabled && typeof Notification !== 'undefined') {
-      try {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          setNotificationsEnabled(true);
-          toast.success('Browser notifications enabled.');
-        } else {
-          toast.warning('Notification permission was denied in your browser settings.');
-        }
-      } catch {
-        // ignore
+    if (!notificationsEnabled) {
+      const granted = await requestNotificationPermission();
+      if (granted) {
+        setNotificationsEnabled(true);
+        toast.success('Browser notifications enabled.');
+      } else {
+        toast.warning('Notification permission was denied in your browser settings.');
       }
     } else {
-      setNotificationsEnabled(!notificationsEnabled);
+      setNotificationsEnabled(false);
+      saveNotifPref(false);
     }
   };
 
@@ -156,21 +154,33 @@ export const Settings: React.FC = () => {
               <p className="text-muted">Play a subtle chime when receiving new incoming messages.</p>
             </div>
 
-            <button
-              type="button"
-              role="switch"
-              aria-checked={soundEnabled}
-              onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 ${
-                soundEnabled ? 'bg-primary' : 'bg-surface-2 border border-border'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  soundEnabled ? 'translate-x-6' : 'translate-x-1'
+            <div className="flex items-center gap-2">
+              {soundEnabled && (
+                <button
+                  type="button"
+                  onClick={testSound}
+                  className="px-2.5 py-1 rounded-lg bg-surface-2 border border-border text-[11px] font-medium text-muted hover:text-text hover:border-primary/40 transition-colors"
+                >
+                  Test Chime
+                </button>
+              )}
+
+              <button
+                type="button"
+                role="switch"
+                aria-checked={soundEnabled}
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 ${
+                  soundEnabled ? 'bg-primary' : 'bg-surface-2 border border-border'
                 }`}
-              />
-            </button>
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    soundEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
 
           {/* Browser Desktop Notifications */}
