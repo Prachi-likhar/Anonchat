@@ -1,6 +1,23 @@
 # Progress Log
 Newest entry at the top. Every prompt gets a PLANNED entry before coding and DONE lines as work completes.
 
+## DONE — 2026-11-14 — Phase 4: Chat (Conversations & Messages)
+- Implemented `src/lib/socket.ts`: Socket.IO singleton client with in-memory token authentication, reconnection strategy, force-logout handling, and typing event emitters.
+- Implemented `src/hooks/useSocket.ts`: Reactive socket lifecycle manager synchronizing connection state with authStore.
+- Implemented `src/hooks/useChatThread.ts`: Messages infinite pagination query (`before` cursor), optimistic message sending with automatic rollback on error, mark-as-read dispatcher, and real-time socket synchronization for `message:new`, `message:read`, `typing`, and `conversation:ended`.
+- Updated `src/hooks/useConversations.ts`: Added reactive presence and conversation socket updates, `endConversation`, `deleteConversation`, `blockUser`, and `submitReport` mutations.
+- Implemented `ConversationItem.tsx`: Dynamic avatar with online indicator, pseudonym, unread badge, ended badge, relative time, and typing preview animation.
+- Implemented `ConversationList.tsx`: Search filter by pseudonym, skeleton loading, and empty state with direct link to Discover.
+- Implemented `ChatHeader.tsx`: Partner info, online presence, typing status, mobile back button, and action dropdown (End, Delete, Report, Block).
+- Implemented `MessageBubble.tsx`: Styled chat bubbles (mine vs other), formatted timestamps, double read ticks (`✓`/`✓✓`), and absolute privacy preservation.
+- Implemented `MessageList.tsx`: Chronological message stream with date headers, auto-scroll to bottom, earlier messages loading, partner typing animation, and friendly empty thread prompt ("Say hi 👋 — you're talking to Anonymous_xxxx").
+- Implemented `ChatComposer.tsx`: Auto-resizing textarea, 2000-character counter, Enter-to-send (Shift+Enter for newline), rate-limit countdown banner, and disabled banner when conversation is ended.
+- Implemented `ReportModal.tsx`: Reason radio group, optional details textarea (max 500 chars), and message snapshot notice.
+- Implemented `ChatDialogs.tsx`: Accessible confirmation dialogs for `BlockConfirmDialog`, `EndChatDialog`, and `DeleteChatDialog`.
+- Implemented `Chat.tsx`: Responsive two-pane layout with seamless mobile switching, conversation selection, and active thread management.
+- Added comprehensive unit and component tests in `src/__tests__/chatPages.test.tsx`: 14 tests covering conversation items, search filtering, header dropdown, message bubbles, composer interactions, report modal, and confirmation dialogs.
+- All 8 test suites passing (50 tests total), `tsc --noEmit` clean, `eslint` clean, and production bundle built successfully.
+
 ## DONE — 2026-11-13 — Phase 3: Discover, Dashboard, Profile & Settings
 - Implemented `useDebounce`, `useMembers` (infinite scrolling member directory with search and gender/status filters), and `useConversations` hooks.
 - Implemented `MemberCard` component displaying anonymous avatar, online indicator, anonymous pseudonym (`Anonymous_xxxx`), gender badge, and "Start Chat" action.

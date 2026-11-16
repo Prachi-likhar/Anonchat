@@ -12,6 +12,8 @@ export function formatMessageTime(dateString: string): string {
   }
 }
 
+export const formatTime = formatMessageTime;
+
 /**
  * Format date for conversation list preview
  */
@@ -29,6 +31,8 @@ export function formatConversationDate(dateString: string): string {
     return '';
   }
 }
+
+export const formatTimeAgo = formatConversationDate;
 
 /**
  * Format date separator for message stream

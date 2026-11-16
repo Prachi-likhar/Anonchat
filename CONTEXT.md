@@ -7,7 +7,7 @@
 - **Web (`anonchat-web-kit/anonchat-web-kit/`):** React 18 + TypeScript + Vite + Tailwind CSS frontend application (Phases 0–1 completed and tested).
 - **Mobile (`anonchat-mobile-app-kit/anonchat-mobile-app-kit/`):** React Native (Expo) + TypeScript + NativeWind starter kit (ready for implementation against the backend API contract).
 
-## Web Frontend Completed Work (Phases 0–3)
+## Web Frontend Completed Work (Phases 0–4)
 
 ### Phase 0 & Phase 1 — Scaffold & Foundation
 - Initialized React 18 + TypeScript (strict) + Vite 5 + Tailwind CSS 3.4 with path aliases (`@/*`).
@@ -43,6 +43,13 @@
 - Implemented `Profile` page (`/app/profile`): permanent pseudonym display, 12-swatch avatar color picker, editable private full name and gender, masked email, change password form, and Danger Zone delete account modal.
 - Implemented `Settings` page (`/app/settings`): theme switcher, notification sound and browser notification toggles, blocked users list with unblock button, and logout actions.
 - Verification passed: 36/36 tests passed in Vitest, `tsc --noEmit` clean, `eslint` clean, and production bundle built successfully.
+
+### Phase 4 — Chat (Conversations & Messages)
+- Implemented Socket.IO integration (`src/lib/socket.ts` and `src/hooks/useSocket.ts`) with in-memory auth, auto-reconnection, typing emitters, and presence sync.
+- Implemented `src/hooks/useChatThread.ts`: infinite message history query, optimistic sending with rollback, real-time message read receipts, typing indicator auto-reset, and rate-limit countdown.
+- Implemented `src/components/chat/`: `ConversationItem`, `ConversationList`, `ChatHeader`, `MessageBubble`, `MessageList`, `ChatComposer`, `ReportModal`, and `ChatDialogs` (`BlockConfirmDialog`, `EndChatDialog`, `DeleteChatDialog`).
+- Implemented `Chat` page (`/app/chat/:id?`): responsive two-pane layout, search filtering, message date separators, unread counters, and mobile back navigation.
+- Verification passed: 50/50 tests passed across 8 Vitest suites, `tsc --noEmit` clean, `eslint` clean, and production bundle built successfully.
 
 ## Backend Completed Work (Phases 0–7)
 

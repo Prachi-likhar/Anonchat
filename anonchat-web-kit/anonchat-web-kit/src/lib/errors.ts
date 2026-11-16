@@ -47,3 +47,25 @@ export function getErrorMessage(error: unknown): string {
 
   return 'An unexpected error occurred. Please try again.';
 }
+
+export function getErrorCode(error: unknown): string | null {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as ApiErrorResponse | undefined;
+    if (data?.error?.code) {
+      return data.error.code;
+    }
+    if (error.response?.status === 429) {
+      return 'RATE_LIMIT_EXCEEDED';
+    }
+    if (error.response?.status === 404) {
+      return 'NOT_FOUND';
+    }
+    if (error.response?.status === 403) {
+      return 'FORBIDDEN';
+    }
+    if (error.response?.status === 409) {
+      return 'CONFLICT';
+    }
+  }
+  return null;
+}
